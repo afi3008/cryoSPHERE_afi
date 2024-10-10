@@ -29,8 +29,8 @@ def train(yaml_setting_path, debug_mode):
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment
     :return:
     """
-    vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, latent_type, device, scheduler,\ 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters = model.utils.parse_yaml(yaml_setting_path)
+    (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, latent_type, device, scheduler, 
+    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters) = model.utils.parse_yaml(yaml_setting_path)
 
     if experiment_settings["wanb"] == True:
         if experiment_settings["resume_training"]["model"] != "None":
@@ -60,7 +60,7 @@ def train(yaml_setting_path, debug_mode):
                             "kl_prior_segmentation_mean":[], "kl_prior_segmentation_std":[], "kl_prior_segmentation_proportions":[], "l2_pen":[], "continuity_loss":[], 
                             "clashing_loss":[]}
 
-        data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers = 4, drop_last=True)))
+        data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers = experiment_settings["num_worker"], drop_last=True)))
         start_tot = time()
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
             batch_images = batch_images.to(device)
