@@ -157,10 +157,10 @@ def parse_yaml(path):
                   experiment_settings["decoder"]["hidden_dimensions"], network_type="decoder", device=device)
 
 
-        vae = VAE(encoder, decoder, device, N_segments = experiment_settings["N_segments"], N_residues= experiment_settings["N_residues"],
-                  tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["mask_start"],
-                  latent_type=experiment_settings["latent_type"], latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
-        vae.to(device)
+    vae = VAE(encoder, decoder, device, N_segments = experiment_settings["N_segments"], N_residues= experiment_settings["N_residues"],
+              tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["mask_start"],
+              latent_type=experiment_settings["latent_type"], latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
+    vae.to(device)
     if "resume_training" in experiment_settings:
         vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
         vae.to(device)
