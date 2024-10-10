@@ -219,7 +219,7 @@ def parse_yaml(path):
     dists = calc_dist_by_pair_indices(base_structure.coord, connect_pairs)
     connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
     dists = torch.tensor(dists, device=device, dtype=torch.float32)
-    assert "full_clahing_loss" in experiment_settings, "Please indicate whether you want to use the full clashing loss or its light version."
+    assert "full_clahing_loss" in experiment_settings["loss"], "Please indicate whether you want to use the full clashing loss or its light version."
     if experiment_settings["full_clahing_loss"]:
         clash_pairs = None
     else:
