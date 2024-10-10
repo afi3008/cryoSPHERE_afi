@@ -114,23 +114,9 @@ def parse_yaml(path):
     with open(path, "r") as file:
         experiment_settings = yaml.safe_load(file)
 
-    with open(experiment_settings["image_yaml"], "r") as file:
-        image_settings = yaml.safe_load(file)
-
-    if experiment_settings["device"] == "GPU":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    else:
-        device = "cpu"
-
-    print("DEVICE:", device)
+    image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     folder_path = experiment_settings["folder_path"]
     path_results = os.path.join(folder_path, "cryoSPHERE")
-    logging.basicConfig(filename=os.path.join(path_results, "run.log"), encoding='utf-8', level=logging.DEBUG, filemode='w', format='%(asctime)s %(levelname)s : %(message)s', 
-        datefmt='%m/%d/%Y %I:%M:%S')
-
-    if not os.path.exists(path_results):
-        os.makedirs(path_results)
-
     #Getting name of the parameters yaml file
     parameter_file = os.path.basename(path)
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
@@ -140,6 +126,20 @@ def parse_yaml(path):
     shutil.copyfile(image_file, os.path.join(path_results, experiment_settings["image_yaml"]))
     particles_path = os.path.join(folder_path, experiment_settings["particles_path"])
 
+    with open(image_file, "r") as file:
+        image_settings = yaml.safe_load(file)
+
+    if experiment_settings["device"] == "GPU":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = "cpu"
+
+
+    logging.basicConfig(filename=os.path.join(path_results, "run.log"), encoding='utf-8', level=logging.DEBUG, filemode='w', format='%(asctime)s %(levelname)s : %(message)s', 
+        datefmt='%m/%d/%Y %I:%M:%S')
+
+    if not os.path.exists(path_results):
+        os.makedirs(path_results)
 
     N_images = experiment_settings["N_images"]
     apix = image_settings["apix"]
