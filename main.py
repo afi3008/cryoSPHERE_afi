@@ -56,7 +56,7 @@ def train(yaml_setting_path, debug_mode):
     N_residues = base_structure.coord.shape[0]
 
     for epoch in range(N_epochs):
-        tracking_metrics = {"wandb":experiment_settings["wanb"], "epoch": epoch, "path_results":path_results ,"correlation_loss":[], "kl_prior_latent":[], 
+        tracking_metrics = {"wandb":experiment_settings["wandb"], "epoch": epoch, "path_results":path_results ,"correlation_loss":[], "kl_prior_latent":[], 
                             "kl_prior_segmentation_mean":[], "kl_prior_segmentation_std":[], "kl_prior_segmentation_proportions":[], "l2_pen":[], "continuity_loss":[], 
                             "clashing_loss":[]}
 
