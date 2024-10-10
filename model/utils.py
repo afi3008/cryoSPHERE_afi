@@ -107,7 +107,7 @@ def low_pass_mask2d(shape, apix=1., bandwidth=2):
 
 def parse_yaml(path):
     """
-    Parse the yaml file to get the setting for the run
+    Parse the yaml file to get the setting for the run.
     :param path: str, path to the yaml file
     :return: settings for the run
     """
@@ -138,14 +138,14 @@ def parse_yaml(path):
     shutil.copyfile(path, os.path.join(path_results, parameter_file))
     #Copying the image yaml file to the results folder
     shutil.copyfile(image_file, os.path.join(path_results, experiment_settings["image_yaml"]))
-    particles_path = experiment_settings["particles_path"]
-    amortized = experiment_settings["amortized"]
+    particles_path = os.path.join(folder_path, experiment_settings["particles_path"])
 
 
     N_images = experiment_settings["N_images"]
     apix = image_settings["apix"]
     Npix = image_settings["Npix"]
     Npix_downsize = image_settings["Npix_downsize"]
+    amortized = experiment_settings["amortized"]
     apix_downsize = Npix * apix /Npix_downsize
     image_translator = SpatialGridTranslate(D=Npix_downsize, device=device)
 
@@ -158,7 +158,7 @@ def parse_yaml(path):
 
 
         vae = VAE(encoder, decoder, device, N_segments = experiment_settings["N_segments"], N_residues= experiment_settings["N_residues"],
-                  tau_mask=experiment_settings["tau_mask"], mask_start_values=experiment_settings["mask_start"],
+                  tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["mask_start"],
                   latent_type=experiment_settings["latent_type"], latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
         vae.to(device)
     if "resume_training" in experiment_settings:
@@ -166,9 +166,9 @@ def parse_yaml(path):
         vae.to(device)
 
 
-    filter_aa = True
     grid = EMAN2Grid(Npix_downsize, apix_downsize, device=device)
-    base_structure = Polymer.from_pdb(experiment_settings["base_structure_path"], filter_aa)
+    base_structure_path = os.path.join(folder_path, experiment_settings["base_structure_path"])
+    base_structure = Polymer.from_pdb(base_structure_path)
     amplitudes = torch.tensor(base_structure.num_electron, dtype=torch.float32, device=device)[:, None]
     gmm_repr = Gaussian(torch.tensor(base_structure.coord, dtype=torch.float32, device=device), 
                 torch.ones((base_structure.coord.shape[0], 1), dtype=torch.float32, device=device)*image_settings["sigma_gmm"], 
@@ -180,11 +180,11 @@ def parse_yaml(path):
                                                                experiment_settings["N_segments"], device)   
 
     if experiment_settings["optimizer"]["name"] == "adam":
-        if "learning_rate_mask" not in experiment_settings["optimizer"]:
+        if "learning_rate_segmentation" not in experiment_settings["optimizer"]:
             optimizer = torch.optim.Adam(vae.parameters(), lr=experiment_settings["optimizer"]["learning_rate"])
         else:
             print("Running different LR for the mask")
-            list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_mask"]} for name, param in
+            list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
                           vae.named_parameters() if "mask" in name]
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
@@ -369,7 +369,7 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
 
     torch.save(vae.state_dict(), experiment_settings["folder_path"] + "models_structural_loss/ckpt" + str(epoch) + ".pt")
     logging.info(f"""Epoch: {tracking_dict["epoch"]} || Correlation loss: {tracking_dict["correlation_loss"]} || KL prior latent: {tracking_dict["kl_prior_latent"]} 
-        || KL prior segmentation std: {tracking_dict["kl_prior_mask_std"]} || KL prior segmentation proportions: {tracking_dict["kl_prior_mask_proportions"]} ||
+        || KL prior segmentation std: {tracking_dict["kl_prior_segmentation_std"]} || KL prior segmentation proportions: {tracking_dict["kl_prior_segmentation_proportions"]} ||
         l2 penalty: {tracking_dict["l2_pen"]} || Continuity loss: {tracking_dict["continuity_loss"]} || Clashing loss: {tracking_dict["clashing_loss"]}""")
 
 
