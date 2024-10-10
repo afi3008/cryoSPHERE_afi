@@ -160,7 +160,7 @@ def parse_yaml(path):
               tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["mask_start"],
                latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
     vae.to(device)
-    if experiment_settings["resume_training"]["model"] != "None":
+    if experiment_settings["resume_training"]["model"]:
         vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
         vae.to(device)
 
@@ -208,7 +208,6 @@ def parse_yaml(path):
 
     N_epochs = experiment_settings["N_epochs"]
     batch_size = experiment_settings["batch_size"]
-    latent_type = experiment_settings["latent_type"]
 
     lp_mask2d = low_pass_mask2d(Npix_downsize, apix_downsize, experiment_settings["lp_bandwidth"])
     lp_mask2d = torch.from_numpy(lp_mask2d).to(device).float()
