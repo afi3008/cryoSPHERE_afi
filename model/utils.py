@@ -117,6 +117,9 @@ def parse_yaml(path):
     folder_path = experiment_settings["folder_path"]
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     path_results = os.path.join(folder_path, "cryoSPHERE")
+    if not os.path.exists(path_results):
+        os.makedirs(path_results)
+        
     #Getting name of the parameters yaml file
     parameter_file = os.path.basename(path)
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
@@ -137,9 +140,6 @@ def parse_yaml(path):
 
     logging.basicConfig(filename=os.path.join(path_results, "run.log"), encoding='utf-8', level=logging.DEBUG, filemode='w', format='%(asctime)s %(levelname)s : %(message)s', 
         datefmt='%m/%d/%Y %I:%M:%S')
-
-    if not os.path.exists(path_results):
-        os.makedirs(path_results)
 
     N_images = experiment_settings["N_images"]
     apix = image_settings["apix"]
