@@ -288,7 +288,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     """
     rmsd = calc_cor_loss(predicted_images, images, segmentation_image)
     KL_prior_latent = compute_KL_prior_latent(latent_mean, latent_std, experiment_settings["epsilon_kl"])
-    KL_prior_segments_means = compute_KL_prior_segments(
+    KL_prior_segmentation_means = compute_KL_prior_segments(
         vae.segmentation_parameters, experiment_settings["segmentation_prior"],
         "means", epsilon_kl=experiment_settings["epsilon_kl"])
 
