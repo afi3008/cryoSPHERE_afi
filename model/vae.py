@@ -71,12 +71,12 @@ class VAE(torch.nn.Module):
             self.segmentation_proportions_std = torch.nn.Parameter(torch.tensor(segmentation_start_values["clusters_proportions"]["std"], dtype=torch.float32, device=device)[None, :],
                                requires_grad=True)
 
-            self.segmentation_parameters = {"means":{"mean":self.segmentation_means_mean, "std":self.segmentation_means_std},
-                                   "stds":{"mean":self.segmentation_std_mean, "std":self.segmentation_std_std},
-                                   "proportions":{"mean":self.segmentation_proportions_mean, "std":self.segmentation_proportions_std}}
 
+
+        self.segmentation_parameters = {"means":{"mean":self.segmentation_means_mean, "std":self.segmentation_means_std},
+                               "stds":{"mean":self.segmentation_std_mean, "std":self.segmentation_std_std},
+                               "proportions":{"mean":self.segmentation_proportions_mean, "std":self.segmentation_proportions_std}}
         self.elu = torch.nn.ELU()
-
         if not amortized:
             assert N_images, "If using a non amortized version of the code, the number of images must be specified"
             self.latent_variables_mean = torch.nn.Parameter(torch.zeros(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=True)
