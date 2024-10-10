@@ -160,8 +160,8 @@ def parse_yaml(path):
               tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["mask_start"],
                latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
     vae.to(device)
-    if "resume_training" in experiment_settings:
-        vae.load_state_dict(torch.load(experiment_settings["resume_training"]))
+    if experiment_settings["resume_training"]["model"] == "None":
+        vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
         vae.to(device)
 
 
