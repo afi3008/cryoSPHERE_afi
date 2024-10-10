@@ -114,8 +114,8 @@ def parse_yaml(path):
     with open(path, "r") as file:
         experiment_settings = yaml.safe_load(file)
 
-    image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     folder_path = experiment_settings["folder_path"]
+    image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     path_results = os.path.join(folder_path, "cryoSPHERE")
     #Getting name of the parameters yaml file
     parameter_file = os.path.basename(path)
