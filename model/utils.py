@@ -239,7 +239,7 @@ def parse_yaml(path):
     logging.info(f"Image size: {Npix}. Pixel size: {apix}. Running cryoSPHERE on downsampled images of size: {Npix_downsize} with pixel size {apix_downsize}.")
     logging.info(f"""Low pass filtering bandwidth: {experiment_settings["lp_bandwidth"]}. Input images mask radius: {experiment_settings['input_mask_radius']}.
         Correlation loss radius: {experiment_settings["loss_mask_radius"]}.""")
-    logging.info(f"Base structure: {experiment_settings['base_structure_path']} with {N_residues} residues.")
+    logging.info(f"Base structure: {experiment_settings['base_structure_path']} with {experiment_settings["N_residues"]} residues.")
     logging.info(f"Latent dimension: {latent_dim}")
     if amortized:
         logging.info(f"Encoder hidden layers: {experiment_settings['encoder']['hidden_dimensions']}")
