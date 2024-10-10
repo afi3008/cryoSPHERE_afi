@@ -225,7 +225,7 @@ def parse_yaml(path):
     if experiment_settings["full_clahing_loss"]:
         clash_pairs = None
     else:
-        clash_pairs = find_range_cutoff_pairs(base_structure.coord, 4)
+        clash_pairs = find_range_cutoff_pairs(base_structure.coord, experiment_settings["loss"]["min_clashing_cutoff_pairs"],experiment_settings["loss"]["max_clashing_cutoff_pairs"])
         clash_pairs = remove_duplicate_pairs(clash_pairs, connect_pairs)
         clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
 
