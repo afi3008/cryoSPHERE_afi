@@ -310,18 +310,18 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
 
     tracking_dict["correlation_loss"].append(rmsd.detach().cpu().numpy())
     tracking_dict["kl_prior_latent"].append(KL_prior_latent.detach().cpu().numpy())
-    tracking_dict["kl_prior_segmentation_mean"].append(KL_prior_mask_means.detach().cpu().numpy())
-    tracking_dict["kl_prior_segmentation_std"].append(KL_prior_mask_stds.detach().cpu().numpy())
-    tracking_dict["kl_prior_segmentation_proportions"].append(KL_prior_mask_proportions.detach().cpu().numpy())
+    tracking_dict["kl_prior_segmentation_mean"].append(KL_prior_segmentation_means.detach().cpu().numpy())
+    tracking_dict["kl_prior_segmentation_std"].append(KL_prior_segmentation_stds.detach().cpu().numpy())
+    tracking_dict["kl_prior_segmentation_proportions"].append(KL_prior_segmentation_proportions.detach().cpu().numpy())
     tracking_dict["l2_pen"].append(l2_pen.detach().cpu().numpy())
     tracking_dict["continuity_loss"].append(continuity_loss.detach().cpu().numpy())
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
 
     loss = rmsd + loss_weights["KL_prior_latent"]*KL_prior_latent \
-           + loss_weights["KL_prior_segmentation_mean"]*KL_prior_mask_means \
-           + loss_weights["KL_prior_segmentation_std"] * KL_prior_mask_stds \
-           + loss_weights["KL_prior_segmentation_proportions"] * KL_prior_mask_proportions \
+           + loss_weights["KL_prior_segmentation_mean"]*KL_prior_segmentation_means \
+           + loss_weights["KL_prior_segmentation_std"] * KL_prior_segmentation_stds \
+           + loss_weights["KL_prior_segmentation_proportions"] * KL_prior_segmentation_proportions \
            + loss_weights["l2_pen"] * l2_pen \
            + loss_weights["continuity_loss"]*continuity_loss \
            + loss_weights["clashing_loss"]*clashing_loss
