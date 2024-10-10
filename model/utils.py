@@ -368,7 +368,7 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
         wandb.log({"Images/true_image": true_image_wandb})
         wandb.log({"Images/predicted_image": predicted_image_wandb})
 
-    torch.save(vae.state_dict(), experiment_settings["folder_path"] + "models_structural_loss/ckpt" + str(epoch) + ".pt")
+    torch.save(vae.state_dict(), experiment_settings["folder_path"] + "models_structural_loss/ckpt" + str(tracking_metrics["epoch"]) + ".pt")
     logging.info(f"""Epoch: {tracking_dict["epoch"]} || Correlation loss: {tracking_dict["correlation_loss"]} || KL prior latent: {tracking_dict["kl_prior_latent"]} 
         || KL prior segmentation std: {tracking_dict["kl_prior_segmentation_std"]} || KL prior segmentation proportions: {tracking_dict["kl_prior_segmentation_proportions"]} ||
         l2 penalty: {tracking_dict["l2_pen"]} || Continuity loss: {tracking_dict["continuity_loss"]} || Clashing loss: {tracking_dict["clashing_loss"]}""")
