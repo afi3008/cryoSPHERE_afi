@@ -119,7 +119,7 @@ def parse_yaml(path):
     path_results = os.path.join(folder_path, "cryoSPHERE")
     if not os.path.exists(path_results):
         os.makedirs(path_results)
-        
+
     #Getting name of the parameters yaml file
     parameter_file = os.path.basename(path)
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
@@ -151,8 +151,7 @@ def parse_yaml(path):
 
     encoder = MLP(Npix_downsize**2,
                   experiment_settings["latent_dimension"] * 2,
-                  experiment_settings["encoder"]["hidden_dimensions"], network_type="encoder", device=device,
-                  latent_type="continuous")
+                  experiment_settings["encoder"]["hidden_dimensions"], network_type="encoder", device=device)
     decoder = MLP(experiment_settings["latent_dimension"], experiment_settings["N_segments"]*6,
                   experiment_settings["decoder"]["hidden_dimensions"], network_type="decoder", device=device)
 
