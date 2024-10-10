@@ -370,9 +370,9 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
 
     model_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "ckpt" + str(tracking_metrics["epoch"]) + ".pt" )
     torch.save(vae.state_dict(), model_path)
-    logging.info(f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"]} || KL prior latent: {tracking_metrics["kl_prior_latent"]} 
-        || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"]} ||
-        l2 penalty: {tracking_metrics["l2_pen"]} || Continuity loss: {tracking_metrics["continuity_loss"]} || Clashing loss: {tracking_metrics["clashing_loss"]}""")
+    logging.info(f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
+        || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"][0]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"][0]} ||
+        l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}""")
 
 
 def read_pdb(path):
