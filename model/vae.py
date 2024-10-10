@@ -32,7 +32,7 @@ class VAE(torch.nn.Module):
         self.residues = torch.arange(0, self.N_residues, 1, dtype=torch.float32, device=device)[:, None]
 
         if segmentation_start_values["type"] == "uniform":
-            bound_0 = self.N_residues/N_domains
+            bound_0 = self.N_residues/N_segments
             self.segmentation_means_mean = torch.nn.Parameter(data=torch.tensor(np.array([bound_0/2 + i*bound_0 for i in range(N_segments)]), dtype=torch.float32, device=device)[None, :],
                                                       requires_grad=True)
             self.segmentation_means_std = torch.nn.Parameter(data= torch.tensor(np.ones(N_segments)*10.0, dtype=torch.float32, device=device)[None,:],
@@ -82,7 +82,7 @@ class VAE(torch.nn.Module):
                 self.latent_variables_mean = torch.nn.Parameter(torch.zeros(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=True)
                 self.latent_variables_std = torch.nn.Parameter(torch.ones(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=False)
 
-    def sample_mask(self, N_batch):
+    def sample_segmentation(self, N_batch):
         """
         Samples a segmantion
         :param N_batch: integer: size of the batch.
@@ -96,7 +96,7 @@ class VAE(torch.nn.Module):
         log_num = -0.5*(self.residues[None, :, :] - cluster_means[:, None, :])**2/cluster_std[:, None, :]**2 + \
               torch.log(proportions[:, None, :])
 
-        segmentation = torch.softmax(log_num / self.tau_mask, dim=-1)
+        segmentation = torch.softmax(log_num / self.tau_segmentation, dim=-1)
         return segmentation
 
     def sample_latent(self, images, indexes=None):
