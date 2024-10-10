@@ -47,17 +47,16 @@ class BaseGrid(torch.nn.Module):
 
 
 class EMAN2Grid(BaseGrid):
-    """EMAN2 style grid for the coordinates of each pixel.
-    origin set to -(side_shape // 2) * voxel_size
-    """
-
-    def __init__(self, side_shape, voxel_size, device="cpu"):
-    	"""
+	"""EMAN2 style grid for the coordinates of each pixel.
+	origin set to -(side_shape // 2) * voxel_size
+	"""
+	def __init__(self, side_shape, voxel_size, device="cpu"):
+		"""
 		:param side_shape: integer, number of pixel on each side of the image.
 		:param voxel_size: float, size of each pixel in Å.
-    	"""
-        origin = -side_shape // 2 * voxel_size
-        super().__init__(side_n_pixels=int(side_shape), voxel_size=voxel_size, origin=origin, device=device)
+		"""
+		origin = -side_shape // 2 * voxel_size
+		super().__init__(side_n_pixels=int(side_shape), voxel_size=voxel_size, origin=origin, device=device)
 
 
 
