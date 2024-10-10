@@ -182,7 +182,6 @@ def parse_yaml(path):
         if "learning_rate_segmentation" not in experiment_settings["optimizer"]:
             optimizer = torch.optim.Adam(vae.parameters(), lr=experiment_settings["optimizer"]["learning_rate"])
         else:
-            print("Running different LR for the mask")
             list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
                           vae.named_parameters() if "mask" in name]
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
@@ -247,6 +246,9 @@ def parse_yaml(path):
 
     logging.info(f"Decoder hidden layers: {experiment_settings['decoder']['hidden_dimensions']}")
     logging.info(f"Batch size: {batch_size}.")
+    logging.info(f"Learning rate for the encoder and decoder: {experiment_settings['optimizer']['learning_rate']}.")
+    logging.info(f"""Learning rate for the segmentation GMM: {experiment_settings["optimizer"]["learning_rate"] if "learning_rate_segmentation" not in experiment_settings["optimizer"] 
+                    else experiment_settings["optimizer"]["learning_rate_segmentation"]}.""")
 
 
 
