@@ -32,7 +32,7 @@ def train(yaml_setting_path, debug_mode):
     (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
     base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters) = model.utils.parse_yaml(yaml_setting_path)
 
-    if experiment_settings["wanb"] == True:
+    if experiment_settings["wandb"] == True:
         if experiment_settings["resume_training"]["model"] != "None":
             name = f"experiment_{experiment_settings['name']}_resume"
         else:
