@@ -19,14 +19,12 @@ class VAE(torch.nn.Module):
         :param N_images: integer, number of images in the dataset
         """
         super(VAE, self).__init__()
-        assert latent_type in ["continuous", "categorical"]
         self.encoder = encoder
         self.decoder = decoder
         self.device = device
         self.N_segments= N_segments
         self.N_residues = N_residues
         self.tau_segmentation = tau_segmentation
-        self.latent_type = latent_type
         self.latent_dim = latent_dim
         self.N_images = N_images
         self.amortized = amortized
