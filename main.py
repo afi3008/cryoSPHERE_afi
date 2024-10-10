@@ -60,7 +60,7 @@ def train(yaml_setting_path, debug_mode):
                             "kl_prior_segmentation_mean":[], "kl_prior_segmentation_std":[], "kl_prior_segmentation_proportions":[], "l2_pen":[], "continuity_loss":[], 
                             "clashing_loss":[]}
 
-        data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers = experiment_settings["num_worker"], drop_last=True)))
+        data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers = experiment_settings["num_workers"], drop_last=True)))
         start_tot = time()
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
             batch_images = batch_images.to(device)
