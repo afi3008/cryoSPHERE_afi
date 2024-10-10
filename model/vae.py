@@ -5,19 +5,19 @@ import numpy as np
 class VAE(torch.nn.Module):
     def __init__(self, encoder, decoder, device, segmentation_start_values, N_segments=6, N_residues=1006, tau_segmentation=0.05,
                  latent_dim = None, amortized=True, N_images=None):
-    """
-    VAE class. This defines all the parameters needed and perform the reparametrization trick.
-    :param encoder: object of type MLP, with type "encoder"
-    :param decoder: object of type MLP, with type "decoder"
-    :param device: torch device on which we want to perform the computations.
-    :param segmentation_start_values: "uniform" for starting uniformly, otherwise dictionnary containing the mean, std for each of the GMM segmentation parameters (mean, std, proportion)
-    :param N_segments: integer, number of segments
-    :param N_residues: integer, total number of residues in the base structure
-    :param tau_segmentation: float, the probabilities of belonging to each segment is annealed by 1/tau
-    :param latent_dim: integer, latent dimension
-    :param amortized: bool, whether to perform amortized inference or not
-    :param N_images: integer, number of images in the dataset
-    """
+        """
+        VAE class. This defines all the parameters needed and perform the reparametrization trick.
+        :param encoder: object of type MLP, with type "encoder"
+        :param decoder: object of type MLP, with type "decoder"
+        :param device: torch device on which we want to perform the computations.
+        :param segmentation_start_values: "uniform" for starting uniformly, otherwise dictionnary containing the mean, std for each of the GMM segmentation parameters (mean, std, proportion)
+        :param N_segments: integer, number of segments
+        :param N_residues: integer, total number of residues in the base structure
+        :param tau_segmentation: float, the probabilities of belonging to each segment is annealed by 1/tau
+        :param latent_dim: integer, latent dimension
+        :param amortized: bool, whether to perform amortized inference or not
+        :param N_images: integer, number of images in the dataset
+        """
         super(VAE, self).__init__()
         assert latent_type in ["continuous", "categorical"]
         self.encoder = encoder
@@ -73,16 +73,16 @@ class VAE(torch.nn.Module):
             self.segmentation_proportions_std = torch.nn.Parameter(torch.tensor(segmentation_start_values["clusters_proportions"]["std"], dtype=torch.float32, device=device)[None, :],
                                requires_grad=True)
 
-        self.segmentation_parameters = {"means":{"mean":self.segmentation_means_mean, "std":self.segmentation_means_std},
+            self.segmentation_parameters = {"means":{"mean":self.segmentation_means_mean, "std":self.segmentation_means_std},
                                    "stds":{"mean":self.segmentation_std_mean, "std":self.segmentation_std_std},
                                    "proportions":{"mean":self.segmentation_proportions_mean, "std":self.segmentation_proportions_std}}
 
-        self.elu = torch.nn.ELU()
+            self.elu = torch.nn.ELU()
 
-        if not amortized:
-            assert N_images, "If using a non amortized version of the code, the number of images must be specified"
-            self.latent_variables_mean = torch.nn.Parameter(torch.zeros(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=True)
-            self.latent_variables_std = torch.nn.Parameter(torch.ones(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=False)
+            if not amortized:
+                assert N_images, "If using a non amortized version of the code, the number of images must be specified"
+                self.latent_variables_mean = torch.nn.Parameter(torch.zeros(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=True)
+                self.latent_variables_std = torch.nn.Parameter(torch.ones(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=False)
 
     def sample_mask(self, N_batch):
         """
