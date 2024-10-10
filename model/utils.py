@@ -157,7 +157,7 @@ def parse_yaml(path):
 
 
     vae = VAE(encoder, decoder, device, N_segments = experiment_settings["N_segments"], N_residues= experiment_settings["N_residues"],
-              tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["mask_start"],
+              tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["segmentation_start"],
                latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
     vae.to(device)
     if experiment_settings["resume_training"]["model"]:
@@ -173,9 +173,9 @@ def parse_yaml(path):
                 torch.ones((base_structure.coord.shape[0], 1), dtype=torch.float32, device=device)*image_settings["sigma_gmm"], 
                 amplitudes)
 
-    assert experiment_settings["mask_prior"]["type"] == "uniform", "Currently, only uniform prior over the segmentation is accepted"
-    if experiment_settings["mask_prior"]["type"] == "uniform":
-        experiment_settings["mask_prior"] = compute_mask_prior(experiment_settings["N_residues"],
+    assert experiment_settings["segmentation_prior"]["type"] == "uniform", "Currently, only uniform prior over the segmentation is accepted"
+    if experiment_settings["segmentation_prior"]["type"] == "uniform":
+        experiment_settings["segmentation_prior"] = compute_segmentation_prior(experiment_settings["N_residues"],
                                                                experiment_settings["N_segments"], device)   
 
     if experiment_settings["optimizer"]["name"] == "adam":
@@ -183,7 +183,7 @@ def parse_yaml(path):
             optimizer = torch.optim.Adam(vae.parameters(), lr=experiment_settings["optimizer"]["learning_rate"])
         else:
             list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
-                          vae.named_parameters() if "mask" in name]
+                          vae.named_parameters() if "segmentation" in name]
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             optimizer = torch.optim.Adam(list_param)
@@ -310,34 +310,34 @@ class SpatialGridTranslate(torch.nn.Module):
         return sampled[:, 0, :, :]
 
 
-def compute_mask_prior(N_residues, N_segments, device):
+def compute_segmentation_prior(N_residues, N_segments, device):
     """
-    Computes the mask prior if "uniform" is set in the yaml file
+    Computes the segmentation prior if "uniform" is set in the yaml file
     :param N_residues: integer, number of residues
     :param N_segments: integer, number of domains
     :param device: str, device to use
     :return: dict of means and std for each prior over the parameters of the GMM.
     """
     bound_0 = N_residues / N_segments
-    mask_means_mean = torch.tensor(np.array([bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
+    segmentation_means_mean = torch.tensor(np.array([bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
                           device=device)[None, :]
 
-    mask_means_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
+    segmentation_means_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
 
-    mask_stds_mean = torch.tensor(np.ones(N_segments) * bound_0, dtype=torch.float32, device=device)[None, :]
+    segmentation_stds_mean = torch.tensor(np.ones(N_segments) * bound_0, dtype=torch.float32, device=device)[None, :]
 
-    mask_stds_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
+    segmentation_stds_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
 
-    mask_proportions_mean = torch.tensor(np.ones(N_segments) * 0, dtype=torch.float32, device=device)[None, :]
+    segmentation_proportions_mean = torch.tensor(np.ones(N_segments) * 0, dtype=torch.float32, device=device)[None, :]
 
-    mask_proportions_std = torch.tensor(np.ones(N_segments), dtype=torch.float32, device=device)[None, :]
+    segmentation_proportions_std = torch.tensor(np.ones(N_segments), dtype=torch.float32, device=device)[None, :]
 
-    mask_prior = {}
-    mask_prior["means"] = {"mean":mask_means_mean, "std":mask_means_std}
-    mask_prior["stds"] = {"mean":mask_stds_mean, "std":mask_stds_std}
-    mask_prior["proportions"] = {"mean":mask_proportions_mean, "std":mask_proportions_std}
+    segmentation_prior = {}
+    segmentation_prior["means"] = {"mean":segmentation_means_mean, "std":segmentation_means_std}
+    segmentation_prior["stds"] = {"mean":segmentation_stds_mean, "std":segmentation_stds_std}
+    segmentation_prior["proportions"] = {"mean":segmentation_proportions_mean, "std":segmentation_proportions_std}
 
-    return mask_prior
+    return segmentation_prior
 
 def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, pred_im, true_im):
     """
@@ -388,26 +388,26 @@ def read_pdb(path):
 
     return atom_array_stack[0]
 
-def compute_rotations_per_residue_einops(quaternions, mask, device):
+def compute_rotations_per_residue_einops(quaternions, segmentation, device):
     """
     Computes the rotation matrix corresponding to each residue.
     :param quaternions: tensor (N_batch, N_segments, 4) of non normalized quaternions defining rotations
-    :param mask: tensor (N_batch, N_residues, N_segments)
+    :param segmentation: tensor (N_batch, N_residues, N_segments)
     :return: tensor (N_batch, N_residues, 3, 3) rotation matrix for each residue
     """
 
-    N_residues = mask.shape[1]
+    N_residues = segmentation.shape[1]
     batch_size = quaternions.shape[0]
-    N_segments = mask.shape[-1]
+    N_segments = segmentation.shape[-1]
     # NOTE: no need to normalize the quaternions, quaternion_to_axis does it already.
     rotation_per_domains_axis_angle = quaternion_to_axis_angle(quaternions)
-    mask_rotation_per_domains_axis_angle = mask[:, :, :, None] * rotation_per_domains_axis_angle[:, None, :, :]
-    mask_rotation_matrix_per_domain_per_residue = axis_angle_to_matrix(mask_rotation_per_domains_axis_angle)
+    segmentation_rotation_per_domains_axis_angle = segmentation[:, :, :, None] * rotation_per_domains_axis_angle[:, None, :, :]
+    segmentation_rotation_matrix_per_domain_per_residue = axis_angle_to_matrix(segmentation_rotation_per_domains_axis_angle)
     ## Flipping to keep in line with the previous implementation
-    mask_rotation_matrix_per_domain_per_residue = torch.einsum("brdle->dbrle", mask_rotation_matrix_per_domain_per_residue).flip(0)
+    segmentation_rotation_matrix_per_domain_per_residue = torch.einsum("brdle->dbrle", segmentation_rotation_matrix_per_domain_per_residue).flip(0)
     dimensions = ",".join([f"b r a{i} a{i+1}" for i in range(N_segments)])
     dimensions += f"-> b r a0 a{N_segments}"
-    overall_rotation_matrices = einops.einsum(*mask_rotation_matrix_per_domain_per_residue, dimensions)
+    overall_rotation_matrices = einops.einsum(*segmentation_rotation_matrix_per_domain_per_residue, dimensions)
     return overall_rotation_matrices
 
 
