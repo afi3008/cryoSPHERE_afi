@@ -84,7 +84,7 @@ def train(yaml_setting_path, debug_mode):
             batch_predicted_images = renderer.apply_ctf(predicted_images, ctf, indexes)/dataset.f_std
             loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae,
                                 experiment_settings["loss"]["loss_weights"], experiment_settings, tracking_metrics, structural_loss_parameters= structural_loss_parameters,
-                                 predicted_structures=predicted_structures, true_structure=base_structure, device=device)
+                                 predicted_structures=predicted_structures, device=device)
 
             loss.backward()
             optimizer.step()
