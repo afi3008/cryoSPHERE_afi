@@ -253,7 +253,7 @@ def parse_yaml(path):
 
 
 
-    return vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, latent_type, device, \
+    return vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, \
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters
 
 
