@@ -161,7 +161,7 @@ def parse_yaml(path):
                latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
     vae.to(device)
     if "resume_training" in experiment_settings:
-        vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
+        vae.load_state_dict(torch.load(experiment_settings["resume_training"]))
         vae.to(device)
 
 
