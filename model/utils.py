@@ -365,12 +365,17 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
         true_image_wandb = wandb.Image(true_im, caption="True image")
         wandb.log({"Images/true_image": true_image_wandb})
         wandb.log({"Images/predicted_image": predicted_image_wandb})
+        for beta, loss_term in tracking_metrics["betas"]:
+            wandb.log({f"betas/{loss_term}": beta})
 
     model_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "ckpt" + str(tracking_metrics["epoch"]) + ".pt" )
     torch.save(vae.state_dict(), model_path)
-    logging.info(f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
+    information_strings = [f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
         || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"][0]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"][0]} ||
-        l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}""")
+        l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}"""]
+    information_strings += [f"{loss_term} beta: {beta}" for beta, loss_term in tracking_metrics["betas"]]
+    information_string = " || ".join(information_strings)
+    logging.info(information_string)
 
 
 def read_pdb(path):
