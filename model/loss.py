@@ -358,7 +358,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     if structural_loss_parameters["clash_pairs"] is None:
         clashing_loss = compute_clashing_distances(predicted_structures, device)
     else:
-        clashing_loss =  calc_clash_loss(predicted_structures, structural_loss_parameters["clash_pairs"], clash_cutoff=experiment_settings["loss"]["clahing_cutoff"])
+        clashing_loss =  calc_clash_loss(predicted_structures, structural_loss_parameters["clash_pairs"], clash_cutoff=experiment_settings["loss"]["clashing_loss"]["clashing_cutoff"])
 
     KL_prior_segmentation_stds = compute_KL_prior_segments(vae.segmentation_parameters, experiment_settings["segmentation_prior"],
                                                "stds", epsilon_kl=experiment_settings["epsilon_kl"])
