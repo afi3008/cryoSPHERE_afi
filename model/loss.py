@@ -378,7 +378,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     tracking_dict["continuity_loss"].append(continuity_loss.detach().cpu().numpy())
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
-    tracking_dict["betas"].append(loss_weights)
+    tracking_dict["betas"] = loss_weights
 
     loss = rmsd + loss_weights["KL_prior_latent"]*KL_prior_latent \
            + loss_weights["KL_prior_segmentation_mean"]*KL_prior_segmentation_means \
