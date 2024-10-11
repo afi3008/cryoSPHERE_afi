@@ -47,7 +47,7 @@ def compute_beta_schedule(epoch, N_epochs, loss_parameters):
     return float, beta value
     """
     schedule = loss_parameters["schedule"]
-    assert schedule in ["constant", "linear", "cyclical"]
+    assert schedule in ["constant", "linear", "cyclical"], f"Schedule must be constant, linear or cyclical. {schedule} value is not handled"
     if schedule == "constant":
         return loss_parameters.get("beta", 1)
     elif schedule == "linear": 
