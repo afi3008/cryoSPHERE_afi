@@ -88,6 +88,7 @@ def train(yaml_setting_path, debug_mode):
             optimizer.step()
             optimizer.zero_grad()
 
+            pass
         if scheduler:
             scheduler.step()
 
