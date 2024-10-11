@@ -367,7 +367,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     l2_pen = compute_l2_pen(vae)
 
 
-    loss_weights = compute_all_beta_schedule(epoch, N_epochs, experiment_settings["loss"])
+    loss_weights = compute_all_beta_schedule(epoch, experiment_settings["N_epochs"], experiment_settings["loss"])
 
     tracking_dict["correlation_loss"].append(rmsd.detach().cpu().numpy())
     tracking_dict["kl_prior_latent"].append(KL_prior_latent.detach().cpu().numpy())
