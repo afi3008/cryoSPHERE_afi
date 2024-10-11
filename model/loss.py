@@ -66,9 +66,7 @@ def compute_all_beta_schedule(epoch, N_epochs, all_losses_parameters):
     return dictionnary of all beta values.
     """
     all_beta_values = {}
-    print("All losses_parameters:", all_losses_parameters)
-    for loss_parameters, loss_name in all_losses_parameters.items():
-        print("LOSS PARAM:",loss_parameters)
+    for loss_name, loss_parameters in all_losses_parameters.items():
         all_beta_values[loss_name] = compute_beta_schedule(epoch, N_epochs, loss_parameters)
 
     return all_beta_values
