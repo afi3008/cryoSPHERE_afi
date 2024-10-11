@@ -349,7 +349,7 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
     :param true_im: torch.tensor(N_batch, N_pix, N_pix), corresponding sample of true images. 
     """
     if tracking_metrics["wandb"] == True:
-        ignore = ["wandb", "epoch", "path_results"]
+        ignore = ["wandb", "epoch", "path_results", "betas"]
         wandb.log({key: np.mean(val) for key, val in tracking_metrics.items() if key not in ignore})
         wandb.log({"epoch": tracking_metrics["epoch"]})
         wandb.log({"lr_segmentation":optimizer.param_groups[0]['lr']})
