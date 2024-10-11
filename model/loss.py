@@ -11,6 +11,67 @@ AA_ATOMS = ("CA", )
 NT_ATOMS = ("C1'", )
 
 
+def compute_linear_beta_schedule(epoch, M):
+    """
+    Compute a beta for a KL divergence according to a linear schedule. See paper:
+    https://arxiv.org/pdf/1903.10145
+    :param epoch: integer, current epoch.
+    :param M: epoch at which beta reaches 1.
+    return float, beta
+    """
+    return min(epoch/M, 1.0)
+
+
+def compute_cyclical_beta_schedule(epoch, M, N_epochs, R=0.5):
+    """
+    Compute a beta for a KL divergence according to a schedule. See paper:
+    https://arxiv.org/pdf/1903.10145
+    :param epoch: integer, epoch number
+    :param R: float in [0, 1], proportion of the cycle spent at beta != 1 for cyclical annealing. For 
+    :param M: integer, number of cycles for the cyclical scheduling.
+    :param N_epochs: integer, total number of epochs we are training for
+    return float, beta value
+    """
+    tau = (epoch % np.ceil(N_epochs/M)) / (N_epochs/M)
+    if tau < R:
+        return tau/R
+    else:
+        return 1
+
+def compute_beta_schedule(epoch, N_epochs, loss_parameters):
+    """
+    Computes the beta value for the KL divergence according to the appropriate schedule.
+    :param epoch: integer, epoch number
+    :param N_epochs: integer, total number of epochs we are training for
+    :param loss_parameters: dictionnary containing the loss parameters, such as the beta value if constant schedule, or the parameters for the other schedules.
+    return float, beta value
+    """
+    schedule = loss_parameters["schedule"]
+    assert shecule in ["constant", "linear", "cyclical"]
+    if schedule == "constant":
+        return loss_parameters.get("beta", 1)
+    elif schedule == "linear": 
+        M = loss_parameters.get("M", N_epochs//2)
+        return compute_linear_beta_schedule(epoch, M)
+    else:
+        M = loss_parameters.get("M", N_epochs//2)
+        R = loss_parameters.get("R", 0.5)
+        return compute_cyclical_beta_schedule(epoch, M, N_epochs, R)
+
+def compute_all_beta_schedule(epoch, N_epochs, all_losses_parameters):
+    """
+    Computes the beta for all the loss terms according to their own respective schedules
+    :param epoch: integer, epoch number
+    :param N_epochs: integer, total number of epochs to perform
+    return dictionnary of all beta values.
+    """
+    all_beta_values = {}
+    for loss_parameters, loss_name in all_losses_parameters.items():
+        all_beta_values[loss_name] = compute_beta_schedule(epoch, N_epochs, loss_parameters)
+
+    return all_beta_values
+
+
 
 def calc_clash_loss(pred_struc, pair_index, clash_cutoff=4.0):
     """
@@ -268,8 +329,8 @@ def compute_clashing_distances(new_structures, device, cutoff=4):
     return torch.mean(average_clahing)
 
 
-def compute_loss(predicted_images, images, segmentation_image, latent_mean, latent_std, vae, loss_weights,
-                 experiment_settings, tracking_dict, structural_loss_parameters, predicted_structures = None, device=None):
+def compute_loss(predicted_images, images, segmentation_image, latent_mean, latent_std, vae, experiment_settings, tracking_dict, structural_loss_parameters,
+                 epoch, predicted_structures = None, device=None):
     """
     Compute the entire loss
     :param predicted_images: torch.tensor(batch_size, N_pix), predicted images
@@ -277,7 +338,6 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     :param latent_mean:torch.tensor(batch_size, latent_dim), mean of the approximate latent distribution
     :param latent_std:torch.tensor(batch_size, latent_dim), std of the approximate latent distribution
     :param vae: vae object of the class VAE. We are training this network.
-    :param loss_weights: dict containing the weights of each part of the losses
     :param experiment_settings: dictionnary with the settings of the current experiment
     :param tracking_dict: dictionnary containing the different metrics we want to track
     :param structural_loss_parameters: dictionnary containing all that is required to compute the structural loss, such as the pairs for clashing loss, continuity loss and
@@ -307,6 +367,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     l2_pen = compute_l2_pen(vae)
 
 
+    loss_weights = compute_all_beta_schedule(epoch, N_epochs, experiment_settings["loss"])
 
     tracking_dict["correlation_loss"].append(rmsd.detach().cpu().numpy())
     tracking_dict["kl_prior_latent"].append(KL_prior_latent.detach().cpu().numpy())
@@ -317,6 +378,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     tracking_dict["continuity_loss"].append(continuity_loss.detach().cpu().numpy())
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
+    tracking_dict["betas"].append(loss_weights)
 
     loss = rmsd + loss_weights["KL_prior_latent"]*KL_prior_latent \
            + loss_weights["KL_prior_segmentation_mean"]*KL_prior_segmentation_means \

@@ -23,7 +23,6 @@ import torch.nn.functional as F
 from dataset import ImageDataSet
 from scipy.spatial import distance
 from gmm import Gaussian, EMAN2Grid
-from Bio.PDB.PDBParser import PDBParser
 from biotite.structure.io.pdb import PDBFile
 from pytorch3d.transforms import Transform3d
 from pytorch3d.transforms import quaternion_to_axis_angle, axis_angle_to_matrix, axis_angle_to_quaternion, quaternion_apply

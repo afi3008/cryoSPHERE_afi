@@ -1,6 +1,5 @@
 import torch
 import wandb
-import einops
 import logging
 import argparse
 import model.utils
@@ -82,9 +81,8 @@ def train(yaml_setting_path, debug_mode):
             posed_predicted_structures = renderer.rotate_structure(predicted_structures, batch_poses)
             predicted_images  = renderer.project(posed_predicted_structures, gmm_repr.sigmas, gmm_repr.amplitudes, grid)
             batch_predicted_images = renderer.apply_ctf(predicted_images, ctf, indexes)/dataset.f_std
-            loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae,
-                                experiment_settings["loss"]["loss_weights"], experiment_settings, tracking_metrics, structural_loss_parameters= structural_loss_parameters,
-                                 predicted_structures=predicted_structures, device=device)
+            loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae, experiment_settings, tracking_metrics, 
+                structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=device)
 
             loss.backward()
             optimizer.step()
