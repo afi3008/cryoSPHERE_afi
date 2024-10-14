@@ -54,7 +54,7 @@ def compute_beta_schedule(epoch, N_epochs, loss_parameters):
         M = loss_parameters.get("M", N_epochs//2)
         return compute_linear_beta_schedule(epoch, M)
     else:
-        M = loss_parameters.get("M", N_epochs//2)
+        M = loss_parameters.get("M", N_epochs//10)
         R = loss_parameters.get("R", 0.5)
         return compute_cyclical_beta_schedule(epoch, M, N_epochs, R)
 
