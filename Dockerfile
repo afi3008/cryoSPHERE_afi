@@ -37,6 +37,7 @@ RUN apt-get -y  install build-essential zlib1g-dev libncurses5-dev libgdbm-dev l
 RUN wget https://www.python.org/ftp/python/3.9.20/Python-3.9.20.tgz
 RUN tar -xf Python-3.9.20.tgz
 WORKDIR Python-3.9.20/
+RUN ./configure --enable-optimizations
 RUN make
 RUN make install
 RUN WORKDIR /app

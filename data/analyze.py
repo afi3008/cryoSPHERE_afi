@@ -85,7 +85,7 @@ def graph_traversal(z_pca, dim, numpoints=10):
     return traj_pca
 
 
-def sample_latent_variables(vae, dataset, batch_size, output_path, num_workers=4):
+def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_workers=4):
     """
     Sample all the latent variables of the dataset and save them in a .npy file
     :param vae: object of class VAE corresponding to the model we want to analyze.
@@ -197,7 +197,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
     if z is None:        
-        z = sample_latent_variables(vae, dataset, batch_size, output_path)
+        z = sample_latent_variables(vae, dataset, batch_size, device, output_path)
 
     if not generate_structures:
             run_pca_analysis(z, dimensions, num_points, output_path)
