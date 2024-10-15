@@ -6,9 +6,9 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-#ARG PYTHON_VERSION=3.9.20
 #FROM python:${PYTHON_VERSION}-slim as base
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu20.04 as base
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -31,21 +31,20 @@ RUN adduser \
     appuser
 
 RUN apt update
-RUN apt-get -y install zypper
-RUN apt install curl -y
-RUN apt install gpg -y
 RUN apt-get -y install sudo
-RUN sudo zypper ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
-
-RUN sudo zypper --gpg-auto-import-keys install -y nvidia-container-toolkit
+#RUN apt-get -y install software-properties-common
+#RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get -y install python3.9 && ln -s /usr/bin/python3.9 /usr/bin/python3
+RUN apt install python3-venv python3-pip -y
 RUN apt-get -y install git
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
-#RUN --mount=type=cache,target=/root/.cache/pip \
-#    --mount=type=bind,source=requirements.txt,target=requirements.txt \
-#    python -m pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    python3 -m pip install -r requirements.txt
 
 #RUN pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 # Switch to the non-privileged user to run the application.
