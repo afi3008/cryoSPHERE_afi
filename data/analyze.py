@@ -191,7 +191,8 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     :param structures_path: 
     :return:
     """
-    vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, latent_type, device, scheduler, base_structure, lp_mask2d, mask_images, amortized  = utils.parse_yaml(yaml_setting_path)
+    (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
+    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters)  = utils.parse_yaml(yaml_setting_path)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
     if z is None:        
