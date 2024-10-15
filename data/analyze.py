@@ -28,15 +28,15 @@ from pytorch3d.transforms import quaternion_to_axis_angle, quaternion_to_matrix
 
 
 parser_arg = argparse.ArgumentParser()
-parser_arg.add_argument('--experiment_yaml', type=str, required=True, description="path to the yaml defining the experimentation")
-parser_arg.add_argument("--model", type=str, required=True, description="path to the model we want to analyze")
-parser_arg.add_argument("--output_path", type=str, required=True, description="path of the directory to save the results")
-parser_arg.add_argument("--z", type=str, required=False, description="path of the latent variables in npy format, if we already have them")
-parser_arg.add_argument("--thinning", type=int, required=False, argument_default= 1,  description="""thinning to apply on the latent variables to perform the PCA analysis: if there are too many images,
+parser_arg.add_argument('--experiment_yaml', type=str, required=True, help="path to the yaml defining the experimentation")
+parser_arg.add_argument("--model", type=str, required=True, help="path to the model we want to analyze")
+parser_arg.add_argument("--output_path", type=str, required=True, help="path of the directory to save the results")
+parser_arg.add_argument("--z", type=str, required=False, help="path of the latent variables in npy format, if we already have them")
+parser_arg.add_argument("--thinning", type=int, required=False, argument_default= 1,  help="""thinning to apply on the latent variables to perform the PCA analysis: if there are too many images,
                         the PCA may take a long time, hence thinning might be needed. For example, thinning = 10 takes one latent variable out of ten for the PCA analysis.""")
-parser_arg.add_argument("--num_points", type=int, required=False, argument_default= 20, description="Number of points to generate for the PC traversals")
+parser_arg.add_argument("--num_points", type=int, required=False, argument_default= 20, help="Number of points to generate for the PC traversals")
 parser_arg.add_argument('--dimensions','--list', nargs='+', type=int, argument_default= [0, 1, 2], help='<Required> PC dimensions along which we compute the trajectories. If not set, use pc 1, 2, 3', required=False)
-parser_arg.add_argument('--generate_structures', action=argparse.BooleanOptionalAction, argument_default= False, description="""If False: run a PCA analysis with PCA traversal. If True,
+parser_arg.add_argument('--generate_structures', action=argparse.BooleanOptionalAction, argument_default= False, help="""If False: run a PCA analysis with PCA traversal. If True,
                             generates the structures corresponding to the latent variables given in z.""")
 
 

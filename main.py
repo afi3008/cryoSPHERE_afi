@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 logger = logging.getLogger(__name__)
 
 parser_arg = argparse.ArgumentParser()
-parser_arg.add_argument('--experiment_yaml', type=str, required=True, description="path to the yaml containing all the parameters for the cryoSPHERE run.")
+parser_arg.add_argument('--experiment_yaml', type=str, required=True, help="path to the yaml containing all the parameters for the cryoSPHERE run.")
 
 def train(yaml_setting_path):
     """
