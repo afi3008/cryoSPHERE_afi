@@ -36,11 +36,10 @@ RUN apt-get -y install wget
 RUN apt-get -y  install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
 RUN wget https://www.python.org/ftp/python/3.9.20/Python-3.9.20.tgz
 RUN tar -xf Python-3.9.20.tgz
-RUN cd Python-3.9.20
-RUN ./configure --enable-optimizations
-RUN make -j 12
-RUN make altinstall
-RUN cd ..
+WORKDIR Python-3.9.20/
+RUN make
+RUN make install
+RUN WORKDIR /app
 #RUN apt-get update
 #RUN apt-get -y install python3.9 && ln -s /usr/bin/python3.9 /usr/bin/python3
 RUN apt install python3-venv python3-pip -y
