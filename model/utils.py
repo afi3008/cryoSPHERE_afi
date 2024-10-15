@@ -103,6 +103,28 @@ def low_pass_mask2d(shape, apix=1., bandwidth=2):
     return mask
 
 
+def set_wandb(experiment_settings):
+    if experiment_settings["wandb"] == True:
+        if experiment_settings["resume_training"]["model"] != "None":
+            name = f"experiment_{experiment_settings['name']}_resume"
+        else:
+            name = f"experiment_{experiment_settings['name']}"
+        if not debug_mode:
+            wandb.init(
+                # Set the project where this run will be logged
+                project=experiment_settings['wandb_project'],
+                # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
+                    name=name,
+
+
+                # Track hyperparameters and run metadata
+                config={
+                    "learning_rate": experiment_settings["optimizer"]["learning_rate"],
+                    "architecture": "VAE",
+                    "dataset": experiment_settings["star_file"],
+                    "epochs": experiment_settings["N_epochs"],
+                })
+
 
 def parse_yaml(path):
     """

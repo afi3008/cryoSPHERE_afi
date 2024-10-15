@@ -27,6 +27,19 @@ from scipy.spatial.distance import cdist
 from pytorch3d.transforms import quaternion_to_axis_angle, quaternion_to_matrix
 
 
+parser_arg = argparse.ArgumentParser()
+parser_arg.add_argument('--experiment_yaml', type=str, required=True, description="path to the yaml defining the experimentation")
+parser_arg.add_argument("--model", type=str, required=True, description="path to the model we want to analyze")
+parser_arg.add_argument("--output_path", type=str, required=True, description="path of the directory to save the results")
+parser_arg.add_argument("--z", type=str, required=False, description="path of the latent variables in npy format, if we already have them")
+parser_arg.add_argument("--thinning", type=int, required=False, argument_default= 1,  description="""thinning to apply on the latent variables to perform the PCA analysis: if there are too many images,
+                        the PCA may take a long time, hence thinning might be needed. For example, thinning = 10 takes one latent variable out of ten for the PCA analysis.""")
+parser_arg.add_argument("--num_points", type=int, required=False, argument_default= 20, description="Number of points to generate for the PC traversals")
+parser_arg.add_argument('--dimensions','--list', nargs='+', type=int, argument_default= [0, 1, 2], help='<Required> PC dimensions along which we compute the trajectories. If not set, use pc 1, 2, 3', required=False)
+parser_arg.add_argument('--generate_structures', action=argparse.BooleanOptionalAction, argument_default= False, description="""If False: run a PCA analysis with PCA traversal. If True,
+                            generates the structures corresponding to the latent variables given in z.""")
+
+
 def concat_and_save(tens, path):
     """
     Concatenate the lsit of tensor along the dimension 0
@@ -64,8 +77,6 @@ def get_nearest_point(data, query):
     return data[ind], ind
 
 def graph_traversal(z_pca, dim, numpoints=10):
-    print(z_pca.shape)
-    print("dim", dim)
     z_pca_dim = z_pca[:, int(dim)]
     start = np.percentile(z_pca_dim, 5)
     stop = np.percentile(z_pca_dim, 95)
@@ -145,42 +156,31 @@ def save_structures(predicted_structures, dim, output_path):
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", i+1, "from pc", dim)
         base_structure.coord = pred_struct.detach().cpu().numpy()
-        base_structure.to_pdb(os.path.join(structures_path, f"pc{dim}/structure_z_{i}.pdb"))
+        base_structure.to_pdb(os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
 
 
-def run_pca_analysis(z, dimensions, num_points):
+def run_pca_analysis(z, dimensions, num_points, output_path):
     """
     Runs a PCA analysis of the latent space and return PC traversals and plots of the PCA of the latent space
     :param z: torch.tensor(N_latent, latent_dim) containing all the latent variables
     :param dimensions: list of integer, list of PC dimensions we want to traverse
     :param num_points: integer, number of points to sample along a PC for the PC traversals
+    :param output_path: str, path to the directory where we want to save the PCA resuls
     """
-    if not generate_structures:
-        if z.shape[-1] > 1:
-            all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=numpoints)
-            sns.set_style("white")
-            for dim in dimensions[:-1]:
-                plot_pca(output_path, dim, all_trajectories_pca)
-                predicted_structures = predict_structures(all_trajectories[dim])
-                save_structures(predicted_structures, dim, output_path)
+    if z.shape[-1] > 1:
+        all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=numpoints)
+        sns.set_style("white")
+        for dim in dimensions[:-1]:
+            plot_pca(output_path, dim, all_trajectories_pca)
+            predicted_structures = predict_structures(all_trajectories[dim])
+            save_structures(predicted_structures, dim, output_path)
 
     else:
-            os.makedirs(os.path.join(structures_path, f"pc0/"), exist_ok=True)
+            os.makedirs(os.path.join(output_path, f"pc0/"), exist_ok=True)
             all_trajectories = graph_traversal(z, 0, numpoints=numpoints)
             z_dim = torch.tensor(all_trajectories, dtype=torch.float32, device=device)
-            mask = vae.sample_mask(z_dim.shape[0])
-            quaternions_per_domain, translations_per_domain = vae.decode(z_dim)
-            rotation_per_residue = utils.compute_rotations_per_residue_einops(quaternions_per_domain, mask, device)
-            translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, mask)
-            predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue,
-                                                               rotation_per_residue)
-
-            for i, pred_struct in enumerate(predicted_structures):
-                print("Saving structure", i+1, "from pc", 0)
-                base_structure.coord = pred_struct.detach().cpu().numpy()
-                base_structure.to_pdb(os.path.join(structures_path, f"pc0/structure_z_{i}.pdb"))
-
-
+            predicted_structures = predicted_structures(all_trajectories)
+            save_structures(predicted_structures, 0, output_path)
 
 
 def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimensions=[0, 1, 2], numpoints=10, generate_structures=False):
@@ -191,104 +191,24 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     :param structures_path: 
     :return:
     """
-    _, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, latent_type, device, scheduler, base_structure, lp_mask2d, mask_images, amortized  = utils.parse_yaml(yaml_setting_path)
-    vae = torch.load(model_path)
-    if amortized:
-        vae.amortized = True
-    else:
-        vae.amortized = False
-        
+    vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, latent_type, device, scheduler, base_structure, lp_mask2d, mask_images, amortized  = utils.parse_yaml(yaml_setting_path)
+    vae.load_state_dict(torch.load(model_path))
     vae.eval()
     if z is None:        
         z = sample_latent_variables(vae, dataset, batch_size, output_path)
 
     if not generate_structures:
-        if z.shape[-1] > 1:
-            all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=numpoints)
-            sns.set_style("white")
-            for dim in dimensions[:-1]:
-                os.makedirs(os.path.join(structures_path, f"pc{dim}/"), exist_ok=True)
-                sns.kdeplot(x=z_pca[:, dim], y=z_pca[:, dim+1], fill=True, clip= (-5, 5))
-                print("TRJACTORIES", all_trajectories_pca[dim][:, :])
-                plt.scatter(x=all_trajectories_pca[dim][:, dim], y=all_trajectories_pca[dim][:, dim+1], c="red")
-                plt.title("PCA of the latent space")
-                plt.xlabel(f"PC {dim+1}, variance {pca.explained_variance_ratio_[dim]} ")
-                plt.ylabel(f"PC {dim+2}, variance variance {pca.explained_variance_ratio_[dim+1]}")
-                plt.savefig(os.path.join(structures_path, f"pc{dim}/pca.png"))
-                plt.close()
-                z_dim = torch.tensor(all_trajectories[dim], dtype=torch.float32, device=device)
-                mask = vae.sample_mask(z_dim.shape[0])
-                quaternions_per_domain, translations_per_domain = vae.decode(z_dim)
-                rotation_per_residue = utils.compute_rotations_per_residue_einops(quaternions_per_domain, mask, device)
-                translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, mask)
-                predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue,
-                                                                   rotation_per_residue)
-
-                for i, pred_struct in enumerate(predicted_structures):
-                    print("Saving structure", i+1, "from pc", dim)
-                    base_structure.coord = pred_struct.detach().cpu().numpy()
-                    base_structure.to_pdb(os.path.join(structures_path, f"pc{dim}/structure_z_{i}.pdb"))
-
-        else:
-                os.makedirs(os.path.join(structures_path, f"pc0/"), exist_ok=True)
-                all_trajectories = graph_traversal(z, 0, numpoints=numpoints)
-                z_dim = torch.tensor(all_trajectories, dtype=torch.float32, device=device)
-                mask = vae.sample_mask(z_dim.shape[0])
-                quaternions_per_domain, translations_per_domain = vae.decode(z_dim)
-                rotation_per_residue = utils.compute_rotations_per_residue_einops(quaternions_per_domain, mask, device)
-                translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, mask)
-                predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue,
-                                                                   rotation_per_residue)
-
-                for i, pred_struct in enumerate(predicted_structures):
-                    print("Saving structure", i+1, "from pc", 0)
-                    base_structure.coord = pred_struct.detach().cpu().numpy()
-                    base_structure.to_pdb(os.path.join(structures_path, f"pc0/structure_z_{i}.pdb"))
+            run_pca_analysis(z, dimensions, num_points, output_path)
 
     else:
-            z=  torch.tensor(z[::thinning], dtype=torch.float32, device=device)
+            z = torch.tensor(z, dtype=torch.float32, device=device)
             latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
-            all_axis_angle = []
-            all_translations = []
-            for batch_num, z in enumerate(latent_variables_loader):  
-                print("Batch number:", batch_num)
-                print("dimensions", dimensions)
-                start = time()
-                mask = vae.sample_mask(z.shape[0])
-                quaternions_per_domain, translations_per_domain = vae.decode(z)
-                all_axis_angle.append(quaternion_to_axis_angle(quaternions_per_domain))
-                print("Translations per domain:", translations_per_domain)
-                all_translations.append(translations_per_domain)
-                rotation_per_residue = utils.compute_rotations_per_residue_einops(quaternions_per_domain, mask, device)
-                translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, mask)
-                np.save(os.path.join(structures_path, f"rotation_per_residue.npy"), rotation_per_residue.detach().cpu().numpy())
-                np.save(os.path.join(structures_path, f"translation_per_residue.npy"), translation_per_residue.detach().cpu().numpy())
-                predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue,
-                                                                   rotation_per_residue)
-
-                for i, pred_struct in enumerate(predicted_structures):
-                    print("Saving structure", batch_num*batch_size + i)
-                    print(z.shape)
-                    base_structure.coord = pred_struct.detach().cpu().numpy()
-                    base_structure.to_pdb(os.path.join(structures_path, f"structure_z_{batch_num*batch_size + i}.pdb"))
-
-
-            all_axis_angle = torch.concatenate(all_axis_angle, dim=0).detach().cpu().numpy()
-            all_translations = torch.concatenate(all_translations, dim=0).detach().cpu().numpy()
-            np.save(os.path.join(structures_path, f"all_axis_angle_predicted.npy"), all_axis_angle)
-            np.save(os.path.join(structures_path, f"all_translations_predicted.npy"), all_translations)
+            for batch_num, z in enumerate(latent_variables_loader): 
+                predicted_structures = predicted_structures(z) 
+                save_structures(predicted_structures)
 
 
 if __name__ == '__main__':
-    parser_arg = argparse.ArgumentParser()
-    parser_arg.add_argument('--experiment_yaml', type=str, required=True, description="path to the yaml defining the experimentation")
-    parser_arg.add_argument("--model", type=str, required=True, description="path to the model we want to analyze")
-    parser_arg.add_argument("--output_path", type=str, required=True)
-    parser_arg.add_argument("--z", type=str, required=False)
-    parser_arg.add_argument("--thinning", type=int, required=False)
-    parser_arg.add_argument("--num_points", type=int, required=False)
-    parser_arg.add_argument('--dimensions','--list', nargs='+', type=int, help='<Required> PC dimensions along which we compute the trajectories. If not set, use pc 1, 2, 3', required=False)
-    parser_arg.add_argument('--generate_structures', action=argparse.BooleanOptionalAction)
     args = parser_arg.parse_args()
     output_path = args.output_path
     thinning = args.thinning

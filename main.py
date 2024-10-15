@@ -18,41 +18,15 @@ import matplotlib.pyplot as plt
 logger = logging.getLogger(__name__)
 
 parser_arg = argparse.ArgumentParser()
-parser_arg.add_argument('--experiment_yaml', type=str, required=True)
-parser_arg.add_argument('--debug', type=bool, required=False)
+parser_arg.add_argument('--experiment_yaml', type=str, required=True, description="path to the yaml containing all the parameters for the cryoSPHERE run.")
 
-
-def train(yaml_setting_path, debug_mode):
+def train(yaml_setting_path):
     """
     train a VAE network
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment
-    :return:
     """
     (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
     base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters) = model.utils.parse_yaml(yaml_setting_path)
-
-    if experiment_settings["wandb"] == True:
-        if experiment_settings["resume_training"]["model"] != "None":
-            name = f"experiment_{experiment_settings['name']}_resume"
-        else:
-            name = f"experiment_{experiment_settings['name']}"
-        if not debug_mode:
-            wandb.init(
-                # Set the project where this run will be logged
-                project=experiment_settings['wandb_project'],
-                # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
-                    name=name,
-
-
-                # Track hyperparameters and run metadata
-                config={
-                    "learning_rate": experiment_settings["optimizer"]["learning_rate"],
-                    "architecture": "VAE",
-                    "dataset": experiment_settings["star_file"],
-                    "epochs": experiment_settings["N_epochs"],
-                })
-
-    N_residues = base_structure.coord.shape[0]
 
     for epoch in range(N_epochs):
         tracking_metrics = {"wandb":experiment_settings["wandb"], "epoch": epoch, "path_results":path_results ,"correlation_loss":[], "kl_prior_latent":[], 
@@ -101,8 +75,5 @@ if __name__ == '__main__':
 
     args = parser_arg.parse_args()
     path = args.experiment_yaml
-    debug_mode = args.debug
-    from torch import autograd
-    with autograd.detect_anomaly():
-        train(path, debug_mode)
+    train(path)
 
