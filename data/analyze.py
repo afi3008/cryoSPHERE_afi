@@ -96,6 +96,7 @@ def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_w
     return 
     """
     data_loader = iter(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers))
+    all_latent_variables = []
     for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
         batch_images = batch_images.to(device)
         batch_poses = batch_poses.to(device)

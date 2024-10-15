@@ -40,7 +40,8 @@ WORKDIR Python-3.9.20/
 RUN ./configure --enable-optimizations
 RUN make
 RUN make install
-RUN WORKDIR /app
+WORKDIR /app
+RUN python -V
 #RUN apt-get update
 #RUN apt-get -y install python3.9 && ln -s /usr/bin/python3.9 /usr/bin/python3
 RUN apt install python3-venv python3-pip -y
