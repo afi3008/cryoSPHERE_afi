@@ -150,12 +150,13 @@ def predict_structures(vae, z_dim, gmm_repr, device):
     return predicted_structures
 
 
-def save_structures(predicted_structures, dim, output_path):
+def save_structures(predicted_structures, dim, output_path, base_structure):
     """
     Save a set of structures given in a torch tensor in different pdb files.
     :param predicted_structures: torch.tensor(N_predicted_structures, N_residues, 3), et of structures
     :param dim: integer, dimension along which we sample
     :param output_path: str, path to the directory in which we save the structures.
+    :param base_structrue: object of class Polymer
     """
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", i+1, "from pc", dim)
@@ -163,7 +164,7 @@ def save_structures(predicted_structures, dim, output_path):
         base_structure.to_pdb(os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
 
 
-def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, device):
+def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device):
     """
     Runs a PCA analysis of the latent space and return PC traversals and plots of the PCA of the latent space
     :param vae: object of class VAE.
@@ -174,21 +175,20 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, devi
     :param gmm_repr: object of class Gaussian.
     :param device: torch device on which we perform the computations
     """
-    print("Z SHAPE", z.shape)
     if z.shape[-1] > 1:
         all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=num_points)
         sns.set_style("white")
         for dim in dimensions[:-1]:
             plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca)
             predicted_structures = predict_structures(vae, all_trajectories[dim], gmm_repr, device)
-            save_structures(predicted_structures, dim, output_path)
+            save_structures(predicted_structures, dim, output_path, base_structure)
 
     else:
             os.makedirs(os.path.join(output_path, f"pc0/"), exist_ok=True)
             all_trajectories = graph_traversal(z, 0, numpoints=numpoints)
             z_dim = torch.tensor(all_trajectories, dtype=torch.float32, device=device)
             predicted_structures = predicted_structures(all_trajectories)
-            save_structures(predicted_structures, 0, output_path)
+            save_structures(predicted_structures, 0, output_path, base_structure)
 
 
 def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimensions=[0, 1, 2], numpoints=10, generate_structures=False):
@@ -203,12 +203,11 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters)  = utils.parse_yaml(yaml_setting_path)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
-    print("GENERATE STRUCTURES", generate_structures)
     if z is None:        
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
-            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, device=device)
+            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device=device)
 
     else:
             z = torch.tensor(z, dtype=torch.float32, device=device)
