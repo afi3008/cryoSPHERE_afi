@@ -170,7 +170,7 @@ def run_pca_analysis(z, dimensions, num_points, output_path):
     :param output_path: str, path to the directory where we want to save the PCA resuls
     """
     if z.shape[-1] > 1:
-        all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=numpoints)
+        all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=num_points)
         sns.set_style("white")
         for dim in dimensions[:-1]:
             plot_pca(output_path, dim, all_trajectories_pca)
