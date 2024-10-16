@@ -178,7 +178,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
     if z.shape[-1] > 1:
         all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=num_points)
         sns.set_style("white")
-        for dim in dimensions[:-1]:
+        for dim in dimensions:
             plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca)
             predicted_structures = predict_structures(vae, all_trajectories[dim], gmm_repr, device)
             save_structures(predicted_structures, dim, output_path, base_structure)
