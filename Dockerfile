@@ -6,9 +6,7 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-#FROM python:${PYTHON_VERSION}-slim as base
 FROM pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel as base
-ARG DEBIAN_FRONTEND=noninteractive
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -31,8 +29,6 @@ RUN adduser \
     appuser
 
 RUN conda create -n cryoSPHERE python=3.9.20
-RUN apt update
-RUN apt-get -y install git
 SHELL ["conda", "run", "-n", "cryoSPHERE", "/bin/bash", "-c"]
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
@@ -43,9 +39,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install -r requirements.txt
 
 RUN conda install pytorch3d -c pytorch3d
-#RUN git clone https://github.com/facebookresearch/pytorch3d.git
-#RUN pip install -e pytorch3d/.
-#RUN pip3 install "git+https://github.com/facebookresearch/pytorch3d.git"
 # Switch to the non-privileged user to run the application.
 USER appuser
 
