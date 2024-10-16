@@ -109,21 +109,21 @@ def set_wandb(experiment_settings):
             name = f"experiment_{experiment_settings['name']}_resume"
         else:
             name = f"experiment_{experiment_settings['name']}"
-        if not debug_mode:
-            wandb.init(
-                # Set the project where this run will be logged
-                project=experiment_settings['wandb_project'],
-                # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
-                    name=name,
+
+        wandb.init(
+            # Set the project where this run will be logged
+            project=experiment_settings['wandb_project'],
+            # We pass a run name (otherwise it’ll be randomly assigned, like sunshine-lollypop-10)
+                name=name,
 
 
-                # Track hyperparameters and run metadata
-                config={
-                    "learning_rate": experiment_settings["optimizer"]["learning_rate"],
-                    "architecture": "VAE",
-                    "dataset": experiment_settings["star_file"],
-                    "epochs": experiment_settings["N_epochs"],
-                })
+            # Track hyperparameters and run metadata
+            config={
+                "learning_rate": experiment_settings["optimizer"]["learning_rate"],
+                "architecture": "VAE",
+                "dataset": experiment_settings["star_file"],
+                "epochs": experiment_settings["N_epochs"],
+            })
 
 
 def parse_yaml(path):
