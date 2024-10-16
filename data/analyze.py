@@ -174,6 +174,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, devi
     :param gmm_repr: object of class Gaussian.
     :param device: torch device on which we perform the computations
     """
+    print("Z SHAPE", z.shape)
     if z.shape[-1] > 1:
         all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=num_points)
         sns.set_style("white")
