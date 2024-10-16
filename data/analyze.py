@@ -114,12 +114,13 @@ def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_w
     return all_latent_variables
 
 
-def plot_pca(output_path, dim, all_trajectories_pca):
+def plot_pca(output_path, dim, all_trajectories_pca, z_pca):
     """
     Function in charge of plotting the PCA of the latent space with the PC traversals
     :param output_path: str, path to the output directory
     :param dim: intger, dimension along which we generate a traversal.
     :param all_trajectories_pca: np.array(num_points, N_pc) coordinates of the points sampled during the traversal.
+    :param z_pca: np.array(N_latent_variables, PCA_latent_dim) all the latent variables in the PCA coordinate system.
     """
     os.makedirs(os.path.join(output_path, f"pc{dim}/"), exist_ok=True)
     sns.kdeplot(x=z_pca[:, dim], y=z_pca[:, dim+1], fill=True, clip= (-5, 5))
@@ -173,7 +174,7 @@ def run_pca_analysis(z, dimensions, num_points, output_path):
         all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=num_points)
         sns.set_style("white")
         for dim in dimensions[:-1]:
-            plot_pca(output_path, dim, all_trajectories_pca)
+            plot_pca(output_path, dim, all_trajectories_pca, z_pca)
             predicted_structures = predict_structures(all_trajectories[dim])
             save_structures(predicted_structures, dim, output_path)
 
