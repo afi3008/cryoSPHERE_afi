@@ -183,7 +183,6 @@ def save_structures(predicted_structures, base_structure, batch_num, output_path
     batch_size = predicted_structures.shape[0]
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", batch_num*batch_size + i)
-        print(all_latent_variables.shape)
         base_structure.coord = pred_struct.detach().cpu().numpy()
         base_structure.to_pdb(os.path.join(output_path, "predicted_structures", f"structure_z_{batch_num*batch_size + i}.pdb"))
 
