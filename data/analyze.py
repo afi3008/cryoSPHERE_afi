@@ -150,7 +150,16 @@ def predict_structures(vae, z_dim, gmm_repr, device):
     return predicted_structures
 
 
-def save_structures(predicted_structures, dim, output_path, base_structure):
+def save_structure(base_structure, path):
+    """
+    Save one structure in a PDB file, saved at path
+    :param base_structure: object of class Polymer
+    :param path: str, path to which we save the PDB
+    """
+    base_structure.to_pdb(path)
+
+
+def save_structures_pca(predicted_structures, dim, output_path, base_structure):
     """
     Save a set of structures given in a torch tensor in different pdb files.
     :param predicted_structures: torch.tensor(N_predicted_structures, N_residues, 3), et of structures
@@ -161,8 +170,22 @@ def save_structures(predicted_structures, dim, output_path, base_structure):
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", i+1, "from pc", dim)
         base_structure.coord = pred_struct.detach().cpu().numpy()
-        base_structure.to_pdb(os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
+        save_structure(base_structure, os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
 
+def save_structures(predicted_structures, base_structure, batch_num, output_path):
+    """
+    Save structures in batch, with the correct numbering .
+    :param predicted_structures: torch.tensor(N_batch, N_residues, 3) of predicted structures
+    :param base_structure: object of class Polymer.
+    :param batch_num: integer, batch number
+    :param output_path: str, path where we want to save the structures
+    """
+    batch_size = predicted_structures.shape[0]
+    for i, pred_struct in enumerate(predicted_structures):
+        print("Saving structure", batch_num*batch_size + i)
+        print(all_latent_variables.shape)
+        base_structure.coord = pred_struct.detach().cpu().numpy()
+        base_structure.to_pdb(os.path.join(output_path, "predicted_structures", f"structure_z_{batch_num*batch_size + i}.pdb"))
 
 def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device):
     """
@@ -181,14 +204,14 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
         for dim in dimensions:
             plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca)
             predicted_structures = predict_structures(vae, all_trajectories[dim], gmm_repr, device)
-            save_structures(predicted_structures, dim, output_path, base_structure)
+            save_structures_pca(predicted_structures, dim, output_path, base_structure)
 
     else:
             os.makedirs(os.path.join(output_path, f"pc0/"), exist_ok=True)
             all_trajectories = graph_traversal(z, 0, numpoints=numpoints)
             z_dim = torch.tensor(all_trajectories, dtype=torch.float32, device=device)
             predicted_structures = predicted_structures(all_trajectories)
-            save_structures(predicted_structures, 0, output_path, base_structure)
+            save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
 def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimensions=[0, 1, 2], numpoints=10, generate_structures=False):
@@ -210,11 +233,15 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
             run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device=device)
 
     else:
-            z = torch.tensor(z, dtype=torch.float32, device=device)
-            latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
-            for batch_num, z in enumerate(latent_variables_loader): 
-                predicted_structures = predicted_structures(z) 
-                save_structures(predicted_structures)
+        path_structures = os.path.join(output_path, "predicted_structures")
+        if not os.path.exists(path_structures):
+            os.makedirs(path_structures)
+
+        z = torch.tensor(z, dtype=torch.float32, device=device)
+        latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
+        for batch_num, z in enumerate(latent_variables_loader): 
+            predicted_structures = predicted_structures(z) 
+            save_structures(predicted_structures)
 
 
 if __name__ == '__main__':

@@ -30,25 +30,10 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-RUN python -V
+RUN conda create -n cryoSPHERE python=3.9.20
+RUN conda init && conda activate cryoSPHERE
 RUN apt update
-#RUN apt-get -y install sudo
-#RUN apt-get -y install wget
-#RUN apt-get -y  install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
-#RUN wget https://www.python.org/ftp/python/3.9.20/Python-3.9.20.tgz
-#RUN tar -xf Python-3.9.20.tgz
-#WORKDIR Python-3.9.20/
-#RUN ./configure --enable-optimizations
-#RUN make
-#RUN make install
-#WORKDIR /app
-#RUN python3.9 -V
-#RUN apt-get update
-#RUN apt-get -y install python3.9 && ln -s /usr/bin/python3.9 /usr/bin/python3
-#RUN apt install python3-venv python3-pip -y
 RUN apt-get -y install git
-#COPY nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl /
-#RUN pip3 install nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
@@ -57,7 +42,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python3 -m pip install -r requirements.txt
 
-#RUN pip install "git+https://github.com/facebookresearch/pytorch3d.git"
+#RUN git clone https://github.com/facebookresearch/pytorch3d.git
+#RUN pip install -e pytorch3d/.
+#RUN pip3 install "git+https://github.com/facebookresearch/pytorch3d.git"
 # Switch to the non-privileged user to run the application.
 USER appuser
 
