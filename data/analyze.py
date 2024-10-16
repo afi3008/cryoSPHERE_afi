@@ -203,6 +203,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters)  = utils.parse_yaml(yaml_setting_path)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
+    print("GENERATE STRUCTURES", generate_structures)
     if z is None:        
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
