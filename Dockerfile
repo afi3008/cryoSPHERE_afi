@@ -31,9 +31,9 @@ RUN adduser \
     appuser
 
 RUN conda create -n cryoSPHERE python=3.9.20
-RUN conda init && conda activate cryoSPHERE
 RUN apt update
 RUN apt-get -y install git
+SHELL ["conda", "run", "-n", "cryoSPHERE", "/bin/bash", "-c"]
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
@@ -42,6 +42,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python3 -m pip install -r requirements.txt
 
+RUN conda install pytorch3d -c pytorch3d
 #RUN git clone https://github.com/facebookresearch/pytorch3d.git
 #RUN pip install -e pytorch3d/.
 #RUN pip3 install "git+https://github.com/facebookresearch/pytorch3d.git"
