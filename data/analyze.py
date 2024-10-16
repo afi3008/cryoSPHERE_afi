@@ -108,9 +108,9 @@ def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_w
         all_latent_variables.append(latent_variables)
 
 
-    all_latent_variables = torch.concat(all_latent_variables, dim=0)
+    all_latent_variables = torch.concat(all_latent_variables, dim=0).detach().cpu().numpy()
     latent_path = os.path.join(output_path, "z.npy")
-    np.save(latent_path, all_latent_variables.detach().cpu().numpy())
+    np.save(latent_path, all_latent_variables)
     return all_latent_variables
 
 
