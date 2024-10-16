@@ -7,7 +7,7 @@
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
 #FROM python:${PYTHON_VERSION}-slim as base
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu20.04 as base
+FROM pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel as base
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Prevents Python from writing pyc files.

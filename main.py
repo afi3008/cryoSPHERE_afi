@@ -48,10 +48,10 @@ def train(yaml_setting_path):
             else:
                 latent_variables, latent_mean, latent_std = vae.sample_latent(None, indexes)
 
-            mask = vae.sample_segmentation(batch_images.shape[0])
+            segmentation = vae.sample_segmentation(batch_images.shape[0])
             quaternions_per_domain, translations_per_domain = vae.decode(latent_variables)
-            translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, mask)
-            predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, mask, device)
+            translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation)
+            predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, device)
             posed_predicted_structures = renderer.rotate_structure(predicted_structures, batch_poses)
             predicted_images  = renderer.project(posed_predicted_structures, gmm_repr.sigmas, gmm_repr.amplitudes, grid)
             batch_predicted_images = renderer.apply_ctf(predicted_images, ctf, indexes)/dataset.f_std
@@ -66,7 +66,7 @@ def train(yaml_setting_path):
         if scheduler:
             scheduler.step()
 
-        model.utils.monitor_training(mask, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
+        model.utils.monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
 
 
 if __name__ == '__main__':

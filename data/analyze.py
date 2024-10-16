@@ -144,10 +144,8 @@ def predict_structures(vae, z_dim, gmm_repr, device):
     z_dim = torch.tensor(z_dim, dtype=torch.float32, device=device)
     segmentation = vae.sample_segmentation(z_dim.shape[0])
     quaternions_per_domain, translations_per_domain = vae.decode(z_dim)
-    rotation_per_residue = utils.compute_rotations_per_residue_einops(quaternions_per_domain, segmentation, device)
-    translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, segmentation)
-    predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue,
-                                                       rotation_per_residue)
+    translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation)
+    predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, device)
 
     return predicted_structures
 
