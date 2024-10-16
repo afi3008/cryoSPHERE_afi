@@ -46,7 +46,8 @@ RUN python3.9 -V
 #RUN apt-get -y install python3.9 && ln -s /usr/bin/python3.9 /usr/bin/python3
 RUN apt install python3-venv python3-pip -y
 RUN apt-get -y install git
-RUN pip3 install nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64(1).whl
+COPY install nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl /
+RUN pip3 install nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into

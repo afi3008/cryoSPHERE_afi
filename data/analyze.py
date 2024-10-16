@@ -133,9 +133,10 @@ def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
     plt.savefig(os.path.join(output_path, f"pc{dim}/pca.png"))
     plt.close()
 
-def predict_structures(z_dim, device):
+def predict_structures(vae, z_dim, device):
     """
     Function predicting the structures for a PC traversal along a specific PC.
+    :param vae: object of class VAE.
     :param z_dim: np.array(num_points, latent_dim) coordinates of the sampled structures for the PC traversal
     :param predicted_structures: torch.tensor(num_points, N_residues, 3), predicted structutres for each one of the sampled points of the PC traversal.
     """
@@ -163,9 +164,10 @@ def save_structures(predicted_structures, dim, output_path):
         base_structure.to_pdb(os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
 
 
-def run_pca_analysis(z, dimensions, num_points, output_path, device):
+def run_pca_analysis(vae, z, dimensions, num_points, output_path, device):
     """
     Runs a PCA analysis of the latent space and return PC traversals and plots of the PCA of the latent space
+    :param vae: object of class VAE.
     :param z: torch.tensor(N_latent, latent_dim) containing all the latent variables
     :param dimensions: list of integer, list of PC dimensions we want to traverse
     :param num_points: integer, number of points to sample along a PC for the PC traversals
@@ -177,7 +179,7 @@ def run_pca_analysis(z, dimensions, num_points, output_path, device):
         sns.set_style("white")
         for dim in dimensions[:-1]:
             plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca)
-            predicted_structures = predict_structures(all_trajectories[dim], device)
+            predicted_structures = predict_structures(vae, all_trajectories[dim], device)
             save_structures(predicted_structures, dim, output_path)
 
     else:
@@ -204,7 +206,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
-            run_pca_analysis(z, dimensions, num_points, output_path, device=device)
+            run_pca_analysis(vae, z, dimensions, num_points, output_path, device=device)
 
     else:
             z = torch.tensor(z, dtype=torch.float32, device=device)
