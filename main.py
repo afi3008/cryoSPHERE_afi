@@ -66,8 +66,7 @@ def train(yaml_setting_path):
         if scheduler:
             scheduler.step()
 
-        if not debug_mode:
-            model.utils.monitor_training(mask, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
+        model.utils.monitor_training(mask, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
 
 
 if __name__ == '__main__':

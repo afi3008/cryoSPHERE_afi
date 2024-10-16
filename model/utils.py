@@ -135,6 +135,8 @@ def parse_yaml(path):
     with open(path, "r") as file:
         experiment_settings = yaml.safe_load(file)
 
+    set_wandb(experiment_settings)
+
     folder_path = experiment_settings["folder_path"]
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     path_results = os.path.join(folder_path, "cryoSPHERE")
