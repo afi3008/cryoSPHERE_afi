@@ -243,8 +243,8 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
         z = torch.tensor(z, dtype=torch.float32, device=device)
         latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
         for batch_num, z in enumerate(latent_variables_loader): 
-            predicted_structures = predict_structures(z) 
-            save_structures(predicted_structures)
+            predicted_structures = predict_structures(vae, z, gmm_repr, device)
+            save_structures(predicted_structures, base_structure, batch_num, path_structures)
 
 
 if __name__ == '__main__':
