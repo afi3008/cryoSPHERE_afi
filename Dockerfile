@@ -6,7 +6,7 @@
 
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
-FROM pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel as base
+FROM pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel AS base
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -49,3 +49,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
+CMD python test.py

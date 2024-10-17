@@ -184,7 +184,7 @@ def save_structures(predicted_structures, base_structure, batch_num, output_path
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", batch_num*batch_size + i)
         base_structure.coord = pred_struct.detach().cpu().numpy()
-        base_structure.to_pdb(os.path.join(output_path, "predicted_structures", f"structure_z_{batch_num*batch_size + i}.pdb"))
+        base_structure.to_pdb(os.path.join(output_path, f"structure_z_{batch_num*batch_size + i}.pdb"))
 
 def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device):
     """
