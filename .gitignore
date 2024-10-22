@@ -9,7 +9,7 @@ slurm*
 *requirements.txt
 *whl
 *Dockerfile*
-
+*.DS_Store
 *compose.yaml
 *README.Docker.md
 *dockerignore
