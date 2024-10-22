@@ -1,5 +1,4 @@
 import dataclasses
-
 import gemmi
 import numpy as np
 import biotite.structure as struc

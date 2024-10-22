@@ -8,6 +8,9 @@ slurm*
 *sh
 *requirements.txt
 *whl
+*Dockerfile*
+*compose.yaml
+*README.Docker.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
