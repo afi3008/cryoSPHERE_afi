@@ -9,9 +9,10 @@ slurm*
 *requirements.txt
 *whl
 *Dockerfile*
+
 *compose.yaml
 *README.Docker.md
-
+*dockerignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
