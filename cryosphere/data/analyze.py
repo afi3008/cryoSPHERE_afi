@@ -2,29 +2,19 @@ import sys
 import os
 path = os.path.abspath("model")
 sys.path.append(path)
-import mrc
-import yaml
 import torch
-import utils
-import mrcfile
+from cryosphere.model import utils
 import argparse
 import starfile
 import numpy as np
-from ctf import CTF
 import seaborn as sns
 from time import time
 from tqdm import tqdm
-import Bio.PDB as bpdb
-from Bio.PDB import PDBIO
-from polymer import Polymer
-from Bio.PDB import PDBParser
+from cryosphere.model.polymer import Polymer
 import matplotlib.pyplot as plt
-from dataset import ImageDataSet
-from gmm import Gaussian, EMAN2Grid
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
 from scipy.spatial.distance import cdist
-from pytorch3d.transforms import quaternion_to_axis_angle, quaternion_to_matrix
 
 
 parser_arg = argparse.ArgumentParser()

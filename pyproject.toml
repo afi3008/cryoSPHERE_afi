@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["dependencies"]
+name = "cryoSPHERE"
+description = "structural heterogeneous cryoEM reconstruction"
+version = "0.0.8"
+readme = "README.md"
+requires-python = ">=3.9-20"
+
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+
+
