@@ -368,6 +368,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
 
     loss_weights = compute_all_beta_schedule(epoch, experiment_settings["N_epochs"], experiment_settings["loss"])
 
+    pixel_num = pred_images.shape[-1]*pred_images[-2]
     tracking_dict["correlation_loss"].append(rmsd.detach().cpu().numpy())
     tracking_dict["kl_prior_latent"].append(KL_prior_latent.detach().cpu().numpy())
     tracking_dict["kl_prior_segmentation_mean"].append(KL_prior_segmentation_means.detach().cpu().numpy())
@@ -379,10 +380,10 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     tracking_dict["clashing_loss"].append(clashing_loss.detach().cpu().numpy())
     tracking_dict["betas"] = loss_weights
 
-    loss = rmsd + loss_weights["KL_prior_latent"]*KL_prior_latent \
-           + loss_weights["KL_prior_segmentation_mean"]*KL_prior_segmentation_means \
-           + loss_weights["KL_prior_segmentation_std"] * KL_prior_segmentation_stds \
-           + loss_weights["KL_prior_segmentation_proportions"] * KL_prior_segmentation_proportions \
+    loss = rmsd + loss_weights["KL_prior_latent"]*KL_prior_latent/pixel_num \
+           + loss_weights["KL_prior_segmentation_mean"]*KL_prior_segmentation_means/pixel_num \
+           + loss_weights["KL_prior_segmentation_std"] * KL_prior_segmentation_stds/pixel_num \
+           + loss_weights["KL_prior_segmentation_proportions"] * KL_prior_segmentation_proportions/pixel_num \
            + loss_weights["l2_pen"] * l2_pen \
            + loss_weights["continuity_loss"]*continuity_loss \
            + loss_weights["clashing_loss"]*clashing_loss

@@ -162,7 +162,7 @@ def save_structures_pca(predicted_structures, dim, output_path, base_structure):
         base_structure.coord = pred_struct.detach().cpu().numpy()
         save_structure(base_structure, os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
 
-def save_structures(predicted_structures, base_structure, batch_num, output_path):
+def save_structures(predicted_structures, base_structure, batch_num, output_path, batch_size):
     """
     Save structures in batch, with the correct numbering .
     :param predicted_structures: torch.tensor(N_batch, N_residues, 3) of predicted structures
@@ -170,13 +170,12 @@ def save_structures(predicted_structures, base_structure, batch_num, output_path
     :param batch_num: integer, batch number
     :param output_path: str, path where we want to save the structures
     """
-    batch_size = predicted_structures.shape[0]
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", batch_num*batch_size + i)
         base_structure.coord = pred_struct.detach().cpu().numpy()
         base_structure.to_pdb(os.path.join(output_path, f"structure_z_{batch_num*batch_size + i}.pdb"))
 
-def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device):
+def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, device):
     """
     Runs a PCA analysis of the latent space and return PC traversals and plots of the PCA of the latent space
     :param vae: object of class VAE.
@@ -222,7 +221,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
-            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, device=device)
+            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, device=device)
 
     else:
         path_structures = os.path.join(output_path, "predicted_structures")
@@ -233,7 +232,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
         latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
         for batch_num, z in enumerate(latent_variables_loader): 
             predicted_structures = predict_structures(vae, z, gmm_repr, device)
-            save_structures(predicted_structures, base_structure, batch_num, path_structures)
+            save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size)
 
 
 def analyze_run():
