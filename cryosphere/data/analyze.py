@@ -42,13 +42,13 @@ def concat_and_save(tens, path):
     return concatenated
 
 
-def compute_traversals(z, dimensions = [0, 1, 2], numpoints=10):
+def compute_traversals(z, dimensions = [0, 1, 2], num_points=10):
     pca = PCA()
     z_pca = pca.fit_transform(z)
     all_trajectories = []
     all_trajectories_pca = []
     for dim in dimensions:
-            traj_pca = graph_traversal(z_pca, dim, numpoints)
+            traj_pca = graph_traversal(z_pca, dim, num_points)
             ztraj_pca = pca.inverse_transform(traj_pca)
             nearest_points, _ = get_nearest_point(z, ztraj_pca)
             all_trajectories.append(nearest_points)
@@ -66,12 +66,12 @@ def get_nearest_point(data, query):
     ind = cdist(query, data).argmin(axis=1)
     return data[ind], ind
 
-def graph_traversal(z_pca, dim, numpoints=10):
+def graph_traversal(z_pca, dim, num_points=10):
     z_pca_dim = z_pca[:, int(dim)]
     start = np.percentile(z_pca_dim, 5)
     stop = np.percentile(z_pca_dim, 95)
-    traj_pca = np.zeros((numpoints, z_pca.shape[1]))
-    traj_pca[:, dim] = np.linspace(start, stop, numpoints)
+    traj_pca = np.zeros((num_points, z_pca.shape[1]))
+    traj_pca[:, dim] = np.linspace(start, stop, num_points)
     return traj_pca
 
 
@@ -188,7 +188,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
     :param device: torch device on which we perform the computations
     """
     if z.shape[-1] > 1:
-        all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, numpoints=num_points)
+        all_trajectories, all_trajectories_pca, z_pca, pca = compute_traversals(z[::thinning], dimensions=dimensions, num_points=num_points)
         sns.set_style("white")
         for dim in dimensions:
             plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca)
@@ -197,13 +197,13 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
 
     else:
             os.makedirs(os.path.join(output_path, f"pc0/"), exist_ok=True)
-            all_trajectories = graph_traversal(z, 0, numpoints=numpoints)
+            all_trajectories = graph_traversal(z, 0, num_points=num_points)
             z_dim = torch.tensor(all_trajectories, dtype=torch.float32, device=device)
             predicted_structures = predicted_structures(all_trajectories)
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
-def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimensions=[0, 1, 2], numpoints=10, generate_structures=False):
+def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimensions=[0, 1, 2], num_points=10, generate_structures=False):
     """
     train a VAE network
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment.
@@ -249,7 +249,7 @@ def analyze_run():
         z = np.load(args.z)
         
     generate_structures = args.generate_structures
-    analyze(path, model_path, output_path, z, dimensions=dimensions, generate_structures=generate_structures, thinning=thinning, numpoints=num_points)
+    analyze(path, model_path, output_path, z, dimensions=dimensions, generate_structures=generate_structures, thinning=thinning, num_points=num_points)
 
 
 if __name__ == '__main__':

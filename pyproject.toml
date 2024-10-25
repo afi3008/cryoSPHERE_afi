@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cryoSPHERE"
 description = "structural heterogeneous cryoEM reconstruction"
-version = "0.0.2"
+version = "0.0.4"
 readme = "README.md"
 requires-python = ">=3.9-20"
 dependencies = ['numpy==1.23.5',
@@ -78,8 +78,7 @@ dependencies = ['numpy==1.23.5',
 		'urllib3==2.2.3', 
 		'wandb==0.18.3', 
 		'yacs==0.1.8', 
-		'zipp==3.20.2',
-		"pytorch3d @ https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py38_cu113_pyt1110/download.html"]
+		'zipp==3.20.2']
 
 
 
