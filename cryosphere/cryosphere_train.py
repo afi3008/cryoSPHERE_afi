@@ -1,3 +1,4 @@
+import sys
 import torch
 import wandb
 import logging
@@ -62,17 +63,22 @@ def train(yaml_setting_path):
             optimizer.step()
             optimizer.zero_grad()
 
-            break
         if scheduler:
             scheduler.step()
 
         model.utils.monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
 
 
-if __name__ == '__main__':
+def cryosphere_train():
+    """
+    This function serves as an entry point to be called from the command line 
+    """
     wandb.login()
-
     args = parser_arg.parse_args()
     path = args.experiment_yaml
     train(path)
+
+
+if __name__ == '__main__':
+    cryosphere_train()
 

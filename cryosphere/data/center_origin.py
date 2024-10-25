@@ -1,10 +1,31 @@
 import mrcfile
 import argparse
 import numpy as np
+import os.path as osp
+from pathlib import Path
+import biotite.structure as bt_struc
+from biotite.structure.io.pdb import PDBFile
+from biotite.structure.io.pdbx import get_structure
+
+
+#This code has been taken from the cryoStar repository:
+#https://github.com/bytedance/cryostar/
+
 
 parser_arg = argparse.ArgumentParser()
 parser_arg.add_argument('--pdb_file_path', type=str, required=True)
 parser_arg.add_argument('--mrc_file_path', type=str, required=True)
+
+
+def _get_file_ext(file_path):
+    if isinstance(file_path, Path):
+        return file_path.suffix
+    else:
+        return osp.splitext(file_path)[1]
+
+
+def _get_file_name(file_path):
+    return osp.splitext(osp.basename(file_path))[0]
 
 def save_mrc(vol, path, voxel_size = None, origin = None):
     """
@@ -76,9 +97,6 @@ def center_origin(pdb_file_path, mrc_file_path):
     Usage:
     center_origin <reference_structure_path.pdb> <consensus_map_path.mrc>
 
-    This code has been taken from the cryoStar repository:
-    https://github.com/bytedance/cryostar/
-
     :param pdb_file_path: str, path to the pdb file
     :param mrc_file_path: str, path to the mrc file
     """
@@ -98,10 +116,12 @@ def center_origin(pdb_file_path, mrc_file_path):
         bt_save_pdb(_get_file_name(pdb_file_path) + "_centered.pdb", atom_arr)
         print(f"Result centered PDB saved to {_get_file_name(pdb_file_path)}_centered.pdb.")
 
-
-
-if __name__ == '__main__':
+def run_center_origin():
     args = parser_arg.parse_args()
     pdb_file_path = args.pdb_file_path
     mrc_file_path = args.mrc_file_path
     center_origin(pdb_file_path, mrc_file_path)
+
+
+if __name__ == '__main__':
+    run_center_origin()

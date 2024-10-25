@@ -236,7 +236,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
             save_structures(predicted_structures, base_structure, batch_num, path_structures)
 
 
-if __name__ == '__main__':
+def analyze_run():
     args = parser_arg.parse_args()
     output_path = args.output_path
     thinning = args.thinning
@@ -250,6 +250,10 @@ if __name__ == '__main__':
         
     generate_structures = args.generate_structures
     analyze(path, model_path, output_path, z, dimensions=dimensions, generate_structures=generate_structures, thinning=thinning, numpoints=num_points)
+
+
+if __name__ == '__main__':
+    analyze_run()
 
 
 
