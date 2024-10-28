@@ -25,13 +25,13 @@ encoder:
 decoder:
     hidden_dimensions: [512, 512] #Same as above but for the decoder.
 segmentation_start:
-  type: "uniform"
+  type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
 segmentation_prior:
-  type: "uniform"
+  type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
 optimizer:
-  name: "adam"
-  learning_rate: 0.00003
-  learning_rate_segmentation: 0.0003
+  name: "adam" #Name of the optimizer. Currently only adam is supported.
+  learning_rate: 0.00003 #Learning rate for the parameters of the encoder and decoder. Default work well.
+  learning_rate_segmentation: 0.0003 #Learning rate for the parameters of the segmentation GMM. Default work well. If removed from the file, the same learning rate as the the encoder and decoder is used.
 loss:
   clashing_loss:
     full_clashing_loss: True
