@@ -368,7 +368,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
 
     loss_weights = compute_all_beta_schedule(epoch, experiment_settings["N_epochs"], experiment_settings["loss"])
 
-    pixel_num = predicted_images.shape[-1]*predicted_images[-2]
+    pixel_num = predicted_images.shape[-1]*predicted_images.shape[-2]
     tracking_dict["correlation_loss"].append(rmsd.detach().cpu().numpy())
     tracking_dict["kl_prior_latent"].append(KL_prior_latent.detach().cpu().numpy())
     tracking_dict["kl_prior_segmentation_mean"].append(KL_prior_segmentation_means.detach().cpu().numpy())

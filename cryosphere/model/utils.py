@@ -124,16 +124,18 @@ def set_wandb(experiment_settings):
             })
 
 
-def parse_yaml(path):
+def parse_yaml(path, analyze=False):
     """
     Parse the yaml file to get the setting for the run.
     :param path: str, path to the yaml file
+    :param analyze: boolean, set to true if this function is called from the analysis script. Otherwise False.
     :return: settings for the run
     """
     with open(path, "r") as file:
         experiment_settings = yaml.safe_load(file)
 
-    set_wandb(experiment_settings)
+    if not analyze:
+        set_wandb(experiment_settings)
 
     folder_path = experiment_settings["folder_path"]
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
@@ -144,10 +146,12 @@ def parse_yaml(path):
     #Getting name of the parameters yaml file
     parameter_file = os.path.basename(path)
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
-    #Copying the parameters yaml file to the results folder
-    shutil.copyfile(path, os.path.join(path_results, parameter_file))
-    #Copying the image yaml file to the results folder
-    shutil.copyfile(image_file, os.path.join(path_results, experiment_settings["image_yaml"]))
+    if not analyze:
+        #Copying the parameters yaml file to the results folder
+        shutil.copyfile(path, os.path.join(path_results, parameter_file))
+        #Copying the image yaml file to the results folder
+        shutil.copyfile(image_file, os.path.join(path_results, experiment_settings["image_yaml"]))
+        
     particles_path = os.path.join(folder_path, experiment_settings["particles_path"])
 
     with open(image_file, "r") as file:
