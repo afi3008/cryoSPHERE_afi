@@ -34,20 +34,20 @@ optimizer:
   learning_rate_segmentation: 0.0003 #Learning rate for the parameters of the segmentation GMM. Default work well. If removed from the file, the same learning rate as the the encoder and decoder is used.
 loss:
   clashing_loss:
-    full_clashing_loss: True
-    clashing_cutoff: 4
-    min_clashing_cutoff_pair: 4
-    max_clashing_cutoff: 10
-    schedule: "constant"
-    beta: 0.0
-  continuity_loss:
-    schedule: "constant"
-    beta: 0.0
-  KL_prior_latent:
-    schedule: "linear"
-    M: 200
-  KL_prior_segmentation_mean:
-    schedule: "linear"
+    full_clashing_loss: True #Whether to use the full clashing loss. Is False, use the lightweight version of this loss. See cryoSPHERE paper.
+    clashing_cutoff: 4 #Threshold in Å to determine if two residues are clashing or not during the training.
+    min_clashing_cutoff_pair: 4 #Min threshold to use for the lightweight version of the clashing loss.
+    max_clashing_cutoff: 10 #Max threshold to use for the lightweight version of the clashing loss.
+    schedule: "constant" #Schedule for the \beta of this loss. "constant" is constant beta. "linear" is linear increasing. "cyclical" is cyclical evolution. Default work well
+    beta: 0.1 #Constant beta value.
+  continuity_loss: #Hyperparameters related to the continuity loss.
+    schedule: "constant" #Same as above. Default work well.
+    beta: 0.1 #Same as above. Default work well.
+  KL_prior_latent: #Hyperparameters related to the KL prior on the latent variable.
+    schedule: "linear" #Same as above. That you may want to change.
+    M: 200 #Number of epochs after which beta is set to 1.
+  KL_prior_segmentation_mean: #Hyperparameters related to the segmentation GMM.
+    schedule: "linear" #
     M: 200
   KL_prior_segmentation_std:
     schedule: "linear"
