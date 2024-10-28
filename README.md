@@ -4,7 +4,7 @@ CryoSPHERE is a structural heterogeneous reconstruction software of cryoEM data.
 
 ## Installation
 
-CryoSPHERE is available as a python package named `cryosphere`. Create a conda environment, install cryosphere with `pip` and then ``pytorch3d`:
+CryoSPHERE is available as a python package named `cryosphere`. Create a conda environment, install cryosphere with `pip` and then `pytorch3d`:
 ```
 conda create -n cryosphere python==3.9.20
 conda activate cryosphere
@@ -25,6 +25,36 @@ The third step is to run cryoSPHERE. To run it, you need  two yaml files: a `par
 cryosphere_train --experiment_yaml /path/to/parameters.yaml
 ```
 
+## Analysis
 
+You can first get the latent variables corresponding to the imagaes and generate a PCA analysis of the latent space, with latent traversal of first principal components::
+```
+cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --output_path /path/to/outpout_folder --no-generate_structures
+```
+where `model.pt` is the saved torch model you want to analyze and output_folder is the folder where you want to save the results of the analysis.
+This will create the following directory structure:
+```
+analysis
+   |	z.npy
+   |	pc0
+	   |   structure_z_1.pdb
+	   .
+	   .
+	   .
+	   |   structure_z_10.pdb
+           |   pca.png
 
+	pc1
+	   |   structure_z_1.pdb
+	   .
+	   .
+           .
+```
+ If you want to generate all structures (one for each images), you can set `--generate_structures` instead. This will skip the PCA step.
+
+It is also possible to get the structures corresponding to specific images. Save the latent variables corresponding to the images of interest into a `z_interest.npy`. You can then run:
+```
+cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --output_path /path/to/outpout_folder --z /path/to/z_interest.npy --generate_structures
+``` 
+Setting the `--z /path/to/z_interest.npy` argument will directly decode the latent variables in `z_interest.npy` into structures.
  
