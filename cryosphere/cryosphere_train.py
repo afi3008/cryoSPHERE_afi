@@ -73,7 +73,6 @@ def cryosphere_train():
     """
     This function serves as an entry point to be called from the command line 
     """
-    wandb.login()
     args = parser_arg.parse_args()
     path = args.experiment_yaml
     train(path)

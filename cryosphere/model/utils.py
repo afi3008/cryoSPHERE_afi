@@ -108,6 +108,7 @@ def low_pass_mask2d(shape, apix=1., bandwidth=2):
 
 def set_wandb(experiment_settings):
     if experiment_settings["wandb"] == True:
+        wandb.login()
         if experiment_settings["resume_training"]["model"] != "None":
             name = f"experiment_{experiment_settings['name']}_resume"
         else:
