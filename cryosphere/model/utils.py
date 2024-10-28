@@ -58,16 +58,21 @@ class Mask(torch.nn.Module):
         super(Mask, self).__init__()
 
         self.device=device
-        mask = torch.lt(torch.linspace(-1, 1, im_size)[None]**2 + torch.linspace(-1, 1, im_size)[:, None]**2, rad**2).to(self.device)
-        # float for pl ddp broadcast compatible
-        self.register_buffer('mask', mask.float())
-        self.num_masked = torch.sum(mask).item()
+        self.rad = rad
+        if rad is not None:
+            mask = torch.lt(torch.linspace(-1, 1, im_size)[None]**2 + torch.linspace(-1, 1, im_size)[:, None]**2, rad**2).to(self.device)
+            # float for pl ddp broadcast compatible
+            self.register_buffer('mask', mask.float())
+            self.num_masked = torch.sum(mask).item()
 
     def forward(self, x):
         """
         Applies the mask to batch of images
         x: torch.tensor(batch_size, im_size, im_size)
         """
+        if self.rad is None:
+            return x
+
         return x * self.mask
 
 
@@ -151,7 +156,7 @@ def parse_yaml(path, analyze=False):
         shutil.copyfile(path, os.path.join(path_results, parameter_file))
         #Copying the image yaml file to the results folder
         shutil.copyfile(image_file, os.path.join(path_results, experiment_settings["image_yaml"]))
-        
+
     particles_path = os.path.join(folder_path, experiment_settings["particles_path"])
 
     with open(image_file, "r") as file:
@@ -236,7 +241,7 @@ def parse_yaml(path, analyze=False):
     lp_mask2d = low_pass_mask2d(Npix_downsize, apix_downsize, experiment_settings["lp_bandwidth"])
     lp_mask2d = torch.from_numpy(lp_mask2d).to(device).float()
 
-    mask = Mask(Npix_downsize, experiment_settings["loss_mask_radius"], device)
+    mask = Mask(Npix_downsize, experiment_settings.get("loss_mask_radius"), device)
 
 
     connect_pairs = find_continuous_pairs(base_structure.chain_id, base_structure.res_id, base_structure.atom_name)

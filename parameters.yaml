@@ -1,0 +1,62 @@
+name: "cryoSPHERE_run" #Name of the experiment. Especially useful for using weight and biases.
+wandb: True #Whether to log the training metrics into weight and biases. Note that it is not mandatory to use wand.
+wandb_project: "VAECryoEM" #Name of the weight and biases project into which we log the training metrics.
+folder_path: "path/to/folder" #path to the folder containing the star file, mrcs files and the base_structure.pdb
+base_structure_path: "base_structure.pdb" #Name of the pdb file of the base structure.
+image_yaml: "images.yaml" #Name of the yaml file containing the parameters realted to the images.
+particles_path: "/path/to/particles" # path to the folder containing the mrcs files. Note that this will be appended to the paths in the star file.
+star_file: "/path/to/star_file.star" #Path to the star file of the experiment.
+N_residues:  #Number of residues in the base structure.
+N_segments: #Number of segments that we want to learn.
+lp_bandwidth: 1  #Bandwith at which we low pass filter the images: all frequencies > 1/lp_bandwidth are set to 0. 
+loss_mask_radius: #Radius of the circular mask used to compute the correlation loss, in percentage of half of the side length: 1 mean the circular mask streches to the edges of the image. Remove if not used. 
+input_mask_radius: 1 #Radius of the circular mask used on the images before feeding them to the encoder. Defined the same as loss_mask_radius. Remove if not used.
+latent_dimension: 8 #Dimension of the latent space. Default work well.
+tau_segmentation: 0.05 #The probability of the residues belonging to each segments in the GMM segmentation are annealed by 1/tau_segmentation. Default work well.
+device: "GPU" #Device to use. If set to "GPU" torch will try to use the available gpu. Currently only single GPU is supported.
+num_workers: 4 #Number of workers for pyTorch. Default work well.
+amortized: True #Whether to use amortized inference or not. Default work well. If set to False, no encoder is used.
+N_images: #Number of images in the dataset
+N_epochs: 300 #Number of epochs to train.
+batch_size: 128 #Size a batch. Default work well.
+epsilon_kl: 1e-10 #Default work well. epsilon added in the kl divergence to avoid log(0).
+encoder: 
+    hidden_dimensions: [512, 256, 64, 64] #List of the hidden dimensions of the encoder (from left to right)
+decoder:
+    hidden_dimensions: [512, 512] #Same as above but for the decoder.
+segmentation_start:
+  type: "uniform"
+segmentation_prior:
+  type: "uniform"
+optimizer:
+  name: "adam"
+  learning_rate: 0.00003
+  learning_rate_segmentation: 0.0003
+loss:
+  clashing_loss:
+    full_clashing_loss: True
+    clashing_cutoff: 4
+    min_clashing_cutoff_pair: 4
+    max_clashing_cutoff: 10
+    schedule: "constant"
+    beta: 0.0
+  continuity_loss:
+    schedule: "constant"
+    beta: 0.0
+  KL_prior_latent:
+    schedule: "linear"
+    M: 200
+  KL_prior_segmentation_mean:
+    schedule: "linear"
+    M: 200
+  KL_prior_segmentation_std:
+    schedule: "linear"
+    beta: 200
+  KL_prior_segmentation_proportions:
+    schedule: "linear"
+    beta: 200
+  l2_pen:
+    schedule: "constant"
+    beta: 0.000001
+resume_training:
+  model: null
