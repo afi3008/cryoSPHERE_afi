@@ -101,8 +101,11 @@ def low_pass_mask2d(shape, apix=1., bandwidth=2):
     freq = np.fft.fftshift(np.fft.fftfreq(shape, apix))
     freq = freq**2
     freq = np.sqrt(freq[:, None] + freq[None, :])
+    if bandwidth is not None:
+        mask = np.asarray(freq < 1 / bandwidth, dtype=np.float32)
+    else:
+        mask = np.ones(freq.shape)
 
-    mask = np.asarray(freq < 1 / bandwidth, dtype=np.float32)
     return mask
 
 
@@ -239,7 +242,7 @@ def parse_yaml(path, analyze=False):
     N_epochs = experiment_settings["N_epochs"]
     batch_size = experiment_settings["batch_size"]
 
-    lp_mask2d = low_pass_mask2d(Npix_downsize, apix_downsize, experiment_settings["lp_bandwidth"])
+    lp_mask2d = low_pass_mask2d(Npix_downsize, apix_downsize, experiment_settings.get("lp_bandwidth"))
     lp_mask2d = torch.from_numpy(lp_mask2d).to(device).float()
 
     mask = Mask(Npix_downsize, experiment_settings.get("loss_mask_radius"), device)
