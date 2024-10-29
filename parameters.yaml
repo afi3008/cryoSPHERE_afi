@@ -47,16 +47,17 @@ loss:
     schedule: "linear" #Same as above. That you may want to change.
     M: 200 #Number of epochs after which beta is set to 1.
   KL_prior_segmentation_mean: #Hyperparameters related to the segmentation GMM.
-    schedule: "linear" #
-    M: 200
-  KL_prior_segmentation_std:
-    schedule: "linear"
-    beta: 200
-  KL_prior_segmentation_proportions:
-    schedule: "linear"
-    beta: 200
-  l2_pen:
-    schedule: "constant"
-    beta: 0.000001
-resume_training:
-  model: null
+    schedule: "linear" # Same as above. You may want to change this value.
+    M: 200 #Same as above, you may want to change this value.
+  KL_prior_segmentation_std: #Hyperparameters related to the KL of the segmentation
+    schedule: "linear" #Same as above.
+    beta: 200   #Same as above
+  KL_prior_segmentation_proportions: #Hyperparameters related to the KL segmentation
+    schedule: "cyclical" #Cyclical schedule for the beta value: starts at 8, increases linearly to 1 and is then reset to 0.
+    M: 5 #Number of cycles during training
+    R: 0.5 #Proportion of time spent during a cycle with beta !=1
+  l2_pen:  #Hyperparameters related to the l2 penalty
+    schedule: "constant"  #Same as above
+    beta: 0.000001   #Same as above
+resume_training: 
+  model: null #If null, training the neural network is initialized. If set to the path to a .pt file of a previous model, resumes training of this model.
