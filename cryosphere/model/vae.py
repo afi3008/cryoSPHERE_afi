@@ -31,7 +31,7 @@ class VAE(torch.nn.Module):
 
         self.residues = torch.arange(0, self.N_residues, 1, dtype=torch.float32, device=device)[:, None]
 
-        if segmentation_start_values["type"] == "uniform":
+        if segmentation_start_values.get("type") == "uniform":
             bound_0 = self.N_residues/N_segments
             self.segmentation_means_mean = torch.nn.Parameter(data=torch.tensor(np.array([bound_0/2 + i*bound_0 for i in range(N_segments)]), dtype=torch.float32, device=device)[None, :],
                                                       requires_grad=True)
@@ -53,16 +53,16 @@ class VAE(torch.nn.Module):
                 requires_grad=True)
 
         else:
-            self.segmentation_means_mean = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_mean"]["mean"], dtype=torch.float32,device=device)[None, :],
+            self.segmentation_means_mean = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_means"]["mean"], dtype=torch.float32,device=device)[None, :],
                                                     requires_grad=True)
 
-            self.segmentation_means_std = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_mean"]["std"], dtype=torch.float32, device=device)[None, :],
+            self.segmentation_means_std = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_means"]["std"], dtype=torch.float32, device=device)[None, :],
                                                   requires_grad=True)
 
-            self.segmentation_std_mean = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_std"]["mean"], dtype=torch.float32, device=device)[None, :],
+            self.segmentation_std_mean = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_stds"]["mean"], dtype=torch.float32, device=device)[None, :],
                                                   requires_grad=True)
 
-            self.segmentation_std_std = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_std"]["std"], dtype=torch.float32, device=device)[None, :],
+            self.segmentation_std_std = torch.nn.Parameter(data=torch.tensor(segmentation_start_values["clusters_stds"]["std"], dtype=torch.float32, device=device)[None, :],
                                                   requires_grad=True)
 
             self.segmentation_proportions_mean = torch.nn.Parameter(torch.tensor(segmentation_start_values["clusters_proportions"]["mean"], dtype=torch.float32, device=device)[None, :],
