@@ -1,8 +1,8 @@
 import sys
 import os
+import cryosphere.data.mrc as mrc
 path = os.path.abspath("model")
 sys.path.append(path)
-import mrc
 import yaml
 import torch
 import mrcfile
@@ -28,8 +28,7 @@ def structure_to_volume(image_yaml, structure_path, output_path):
     Npix_downsize = image_settings["Npix_downsize"]
     apix_downsize = apix*Npix/Npix_downsize
 
-    filter_aa = True
-    base_structure = Polymer.from_pdb(structure_path, filter_aa)
+    base_structure = Polymer.from_pdb(structure_path, True)
     amplitudes = torch.tensor(base_structure.num_electron, dtype=torch.float32, device=device)[:, None]
     #grid = EMAN2Grid(Npix_downsize, apix_downsize, device=device)
     grid = BaseGrid(Npix_downsize, apix_downsize, device=device)
@@ -40,10 +39,10 @@ def structure_to_volume(image_yaml, structure_path, output_path):
     struct = gmm_repr.mus[None, :, :]
     volume = renderer.structure_to_volume(struct, gmm_repr.sigmas, gmm_repr.amplitudes, grid, device)
     end = time.time()
-    mrc.write(output_path, np.transpose(volume[0].detach().cpu().numpy(), axes=(2, 1, 0)), Apix=apix_downsize, is_vol=True)
+    mrc.MRCFile.write(output_path, np.transpose(volume[0].detach().cpu().numpy(), axes=(2, 1, 0)), Apix=apix_downsize, is_vol=True)
 
 def turn_structure_to_volume():
-    arser_arg = argparse.ArgumentParser()
+    parser_arg = argparse.ArgumentParser()
     parser_arg.add_argument('--image_yaml', type=str, required=True, help="path to the yaml containing the images informations.")
     parser_arg.add_argument("--structure_path", type=str, required=True, help="path to the pdb file we want to turn into a volume.")
     parser_arg.add_argument("--output_path", type=str, required=True, help="path of the output mrc file containing the volume.")

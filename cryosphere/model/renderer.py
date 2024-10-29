@@ -41,6 +41,25 @@ def project(Gauss_mean, Gauss_sigmas, Gauss_amplitudes, grid):
     images = torch.einsum("b a p, b a q -> b q p", proj_x, proj_y)
     return images
 
+def structure_to_volume(Gauss_means, Gauss_sigmas, Gauss_amplitudes, grid, device):
+    """
+    Turn a structure into a volume using the GMM representation.
+    Gauss_mean: torch.tensor(batch_size, N_atoms, 3)
+    Gauss_sigmas: torch.tensor(N_atoms, 1)
+    Gauss_amplitudes: torch.tensor(N_atoms, 1)
+    grid: torch.tensor(N_pix,) where N_pix is the number of pixels on one side of the image
+    return images: torch.tensor(batch_size, N_pix, N_pix, N_pix)
+    """
+    batch_size = Gauss_means.shape[0]
+    N_pix = torch.pow(grid.line_coords.shape[0], torch.ones(1, device=device)*1/3)
+    cubic_root_amp = torch.pow(Gauss_amplitudes, torch.ones(1, device=device)*1/3)
+    sigmas = 2*Gauss_sigmas**2
+    proj_x = torch.exp(-(Gauss_means[:, :, None, 0] - grid.line_coords[None, None, :])**2/sigmas[None, :, None, 0])*cubic_root_amp[None, :, :]
+    proj_y = torch.exp(-(Gauss_means[:, :, None, 1] - grid.line_coords[None, None, :])**2/sigmas[None, :, None, 0])*cubic_root_amp[None, :, :]
+    proj_z = torch.exp(-(Gauss_means[:, :, None, 2] - grid.line_coords[None, None, :])**2/sigmas[None, :, None, 0])*cubic_root_amp[None, :, :]
+    volumes = torch.einsum("b a p, b a q, b a r -> b p q r", proj_x, proj_y, proj_z)    
+    return volumes
+
 
 def rotate_structure(Gauss_mean, rotation_matrices):
     """
