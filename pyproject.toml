@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cryoSPHERE"
 description = "structural heterogeneous cryoEM reconstruction"
-version = "0.2.5"
+version = "0.2.6"
 readme = "README.md"
 requires-python = ">=3.9-20"
 dependencies = ['numpy==1.23.5',

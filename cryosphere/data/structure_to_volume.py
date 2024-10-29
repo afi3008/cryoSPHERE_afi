@@ -8,11 +8,11 @@ import torch
 import mrcfile
 import argparse
 import numpy as np
-import renderer
+from cryosphere.model import renderer
 import time
 from polymer import Polymer
 from cryosphere.model import utils
-from gmm import Gaussian, EMAN2Grid, BaseGrid
+from cryosphere.model.gmm import Gaussian, EMAN2Grid, BaseGrid
 
 
 
