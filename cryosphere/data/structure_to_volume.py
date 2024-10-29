@@ -5,7 +5,6 @@ sys.path.append(path)
 import mrc
 import yaml
 import torch
-import utils
 import mrcfile
 from cryodrgn import mrc
 import argparse
@@ -13,6 +12,7 @@ import numpy as np
 import renderer
 import time
 from polymer import Polymer
+from cryosphere.model import utils
 from gmm import Gaussian, EMAN2Grid, BaseGrid
 
 
@@ -45,9 +45,9 @@ def structure_to_volume(image_yaml, structure_path, output_path):
 
 def turn_structure_to_volume():
     arser_arg = argparse.ArgumentParser()
-    parser_arg.add_argument('--image_yaml', type=str, required=True)
-    parser_arg.add_argument("--structure_path", type=str, required=True)
-    parser_arg.add_argument("--output_path", type=str, required=True)
+    parser_arg.add_argument('--image_yaml', type=str, required=True, help="path to the yaml containing the images informations.")
+    parser_arg.add_argument("--structure_path", type=str, required=True, help="path to the pdb file we want to turn into a volume.")
+    parser_arg.add_argument("--output_path", type=str, required=True, help="path of the output mrc file containing the volume.")
     args = parser_arg.parse_args()
     image_yaml = args.image_yaml
     structure_path = args.structure_path
