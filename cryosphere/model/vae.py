@@ -79,8 +79,9 @@ class VAE(torch.nn.Module):
         self.elu = torch.nn.ELU()
         if not amortized:
             assert N_images, "If using a non amortized version of the code, the number of images must be specified"
-            self.latent_variables_mean = torch.nn.Parameter(torch.zeros(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=True)
-            self.latent_variables_std = torch.nn.Parameter(torch.ones(N_images, self.latent_dim, dtype=torch.float32, device=device)*0.5, requires_grad=False)
+            means = torch.randn(N_images, self.latent_dim, dtype=torch.float32, device=device)
+            self.latent_variables_mean = torch.nn.Parameter(means, requires_grad=True)
+            self.latent_variables_std = torch.nn.Parameter(torch.ones(N_images, self.latent_dim, dtype=torch.float32, device=device), requires_grad=False)
 
     def sample_segmentation(self, N_batch):
         """
