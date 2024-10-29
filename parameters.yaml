@@ -8,8 +8,8 @@ particles_path: "/path/to/particles" # path to the folder containing the mrcs fi
 star_file: "/path/to/star_file.star" #Path to the star file of the experiment.
 N_residues:  #Number of residues in the base structure.
 N_segments: #Number of segments that we want to learn.
-lp_bandwidth: 1  #Bandwith at which we low pass filter the images: all frequencies > 1/lp_bandwidth are set to 0. 
-loss_mask_radius: #Radius of the circular mask used to compute the correlation loss, in percentage of half of the side length: 1 mean the circular mask streches to the edges of the image. Remove if not used. 
+lp_bandwidth:   #Bandwith at which we low pass filter the images: all frequencies > 1/lp_bandwidth are set to 0. 
+loss_mask_radius: 1 #Radius of the circular mask used to compute the correlation loss, in percentage of half of the side length: 1 mean the circular mask streches to the edges of the image. Remove if not used. 
 input_mask_radius: 1 #Radius of the circular mask used on the images before feeding them to the encoder. Defined the same as loss_mask_radius. Remove if not used.
 latent_dimension: 8 #Dimension of the latent space. Default work well.
 tau_segmentation: 0.05 #The probability of the residues belonging to each segments in the GMM segmentation are annealed by 1/tau_segmentation. Default work well.

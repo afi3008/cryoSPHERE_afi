@@ -1,6 +1,7 @@
 # cryoSPHERE: Single-particle heterogeneous reconstruction from cryo EM
 
-CryoSPHERE is a structural heterogeneous reconstruction software of cryoEM data.
+CryoSPHERE is a structural heterogeneous reconstruction software of cryoEM data. It requires an estimate of the CTF and poses of each image. This can be obtained using other softwares.
+CryoSPHERE works with two yaml files: one `parameters.yaml` describing the hyperparameters used to train cryoSPHERE and a `image.yaml` file, describing the images in the dataset. You can find an commented example of these files in the repository.  
 
 ## Installation
 
@@ -13,14 +14,28 @@ conda install pytorch3d -c pytorch3d
 ```
 
 ## Training
-The first step before running cryoSPHERE on a dataset is to run a homogeneous reconstruction software such as RELION or cryoSparc. This should yield a star file containing the poses of each image, the CTF and information about the images as well as one or several mrcs file(s) containing the actual images. You should also obtain one or several mrc files corresponding to consensus reconstruction(s). For example, you obtained a `conensus_map.mrc`
-The second step is to fit a good atomic structure of the protein of interest into the volume obtained at step one (`consensus_map.mrc`), using e.g ChimeraX. Save this structure in pdb format: `fitted_structure.pdb`. You can now use cryopshere command line tools to center the structure:
+### Preliminary: consensus reconstruction.
+Before running cryoSPHERE on a dataset is to run a homogeneous reconstruction software such as RELION or cryoSparc. This should yield a star file containing the poses of each image, the CTF and information about the images as well as one or several mrcs file(s) containing the actual images. You should also obtain one or several mrc files corresponding to consensus reconstruction(s). For this tutorial, we assume your images are in a file called `particles.mrcs` and after a consensus reconstruction, you obain a star file named `particles.star` and a consensus reconstruction file called `consensus_map.mrc`. This naming is not mandatory, your files can have arbitrary names as long as the extension is correct.
+
+This step is important to obtain an estimation of the CTF and the pose of each image. 
+
+### First step: centering the structure
+Fit a good atomic structure of the protein of interest into the volume obtained at step one (`consensus_map.mrc`), using e.g ChimeraX. Save this structure in pdb format: `fitted_structure.pdb`. You can now use cryopshere command line tools to center the structure and volume:
 ```
 cryosphere_center_origin --pdb_file_path fitted_structure.pdb --mrc_file_path consensus_map.mrc
 ```
-This yields another pdb file `fitted_structure_centered.pdb".
+This yields a pdb file `fitted_structure_centered.pdb` of the centered structure and a mrc file `consensus_map_centered.mrc` of the centered consensus volume.
 
-The third step is to run cryoSPHERE. To run it, you need  two yaml files: a `parameters.yaml` file, defining all the parameters of the training run and a `image.yaml` file, containing informations about the images. You need to set the `folder_experiment` entry of the paramters.yaml to the path of the folder containing your data. You also need to change the `base_structure` entry to `fitted_structure_centered.pdb`. You can then run cryosphere using the command line tool:
+### First step bis (optional)
+Since the dataset is usually very noisy, it might be helpful to apply a low pass filter to the images. To determine the bandwith cutoff, first turn the centered structure into a volume, using the same GMM representation of the protein as is used during training cryoSPHERE:
+```
+cryosphere_structure_to_volume --image_yaml /path/to/image.yaml --structure_path/path/to/fitted_structure_centered.pdb --output_path /path/to/fitted_structure_centered_volume.mrc
+```
+You can now compute the Fourier Shell Correlation (FSC) between `fitted_structure_centered_volume.mrc` and `consensus_map_centered.mrc` using available softwares. Find the frequency `cutoff_freq` for which the FSC is equal to 0.5, and set `lp_bandwidth: 1/cutoff_freq` in the `parameters.yaml`. This means that the in the images, the frequencies such that `freq > 1/lp_bandwidth` are set to 0.
+
+### Second step
+
+The second step is to run cryoSPHERE. To run it, you need  two yaml files: a `parameters.yaml` file, defining all the parameters of the training run and a `image.yaml` file, containing informations about the images. You need to set the `folder_experiment` entry of the paramters.yaml to the path of the folder containing your data. You also need to change the `base_structure` entry to `fitted_structure_centered.pdb`. You can then run cryosphere using the command line tool:
 ```
 cryosphere_train --experiment_yaml /path/to/parameters.yaml
 ```
