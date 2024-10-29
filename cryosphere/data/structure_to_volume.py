@@ -10,7 +10,7 @@ import argparse
 import numpy as np
 from cryosphere.model import renderer
 import time
-from polymer import Polymer
+from cryosphere.model.polymer import Polymer
 from cryosphere.model import utils
 from cryosphere.model.gmm import Gaussian, EMAN2Grid, BaseGrid
 
