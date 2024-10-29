@@ -6,7 +6,6 @@ import mrc
 import yaml
 import torch
 import mrcfile
-from cryodrgn import mrc
 import argparse
 import numpy as np
 import renderer
