@@ -86,3 +86,4 @@ dependencies = ['numpy==1.23.5',
 cryosphere_train = "cryosphere.cryosphere_train:cryosphere_train"
 cryosphere_analyze = "cryosphere.data.analyze:analyze_run"
 cryosphere_center_origin = "cryosphere.data.center_origin:run_center_origin"
+cryosphere_structure_to_volume = "cryosphere.data.structure_to_volume:turn_structure_to_volume"
