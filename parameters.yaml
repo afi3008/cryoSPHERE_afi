@@ -45,13 +45,10 @@ loss:
     beta: 0.1 #Same as above. Default work well.
   KL_prior_latent: #Hyperparameters related to the KL prior on the latent variable.
     schedule: "linear" #Same as above. That you may want to change.
-    M: 200 #Number of epochs after which beta is set to 1.
   KL_prior_segmentation_mean: #Hyperparameters related to the segmentation GMM.
     schedule: "linear" # Same as above. You may want to change this value.
-    M: 200 #Same as above, you may want to change this value.
   KL_prior_segmentation_std: #Hyperparameters related to the KL of the segmentation
     schedule: "linear" #Same as above.
-    beta: 200   #Same as above
   KL_prior_segmentation_proportions: #Hyperparameters related to the KL segmentation
     schedule: "cyclical" #Cyclical schedule for the beta value: starts at 8, increases linearly to 1 and is then reset to 0.
     M: 5 #Number of cycles during training
