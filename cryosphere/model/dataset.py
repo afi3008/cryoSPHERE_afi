@@ -1,6 +1,7 @@
 import os
 import torch
 import mrcfile
+import starfile
 import numpy as np
 from time import time
 from torch.utils.data import Dataset
@@ -21,6 +22,15 @@ class Mask(torch.nn.Module):
 
     def forward(self, x):
         return x * self.mask
+
+
+def starfile_reader(starfile_path):
+    """
+    Reads a RELION starfile for the poses
+    :starfile_path: str, path to the starfile
+    """
+    particles_star = starfile.read(experiment_settings["star_file"])
+
 
 
 class ImageDataSet(Dataset):
