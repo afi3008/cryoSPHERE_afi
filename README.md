@@ -31,7 +31,8 @@ Since the dataset is usually very noisy, it might be helpful to apply a low pass
 ```
 cryosphere_structure_to_volume --image_yaml /path/to/image.yaml --structure_path/path/to/fitted_structure_centered.pdb --output_path /path/to/fitted_structure_centered_volume.mrc
 ```
-You can now compute the Fourier Shell Correlation (FSC) between `fitted_structure_centered_volume.mrc` and `consensus_map_centered.mrc` using available softwares. Find the frequency `cutoff_freq` for which the FSC is equal to 0.5, and set `lp_bandwidth: 1/cutoff_freq` in the `parameters.yaml`. This means that the in the images, the frequencies such that `freq > 1/lp_bandwidth` are set to 0.
+You can now compute the Fourier Shell Correlation (FSC) between `fitted_structure_centered_volume.mrc` and `consensus_map_centered.mrc` using available softwares: e.g the e2proc3d command of EMAN2 or online [here](https://www.ebi.ac.uk/emdb/validation/fsc/). 
+Next, find the frequency `cutoff_freq` for which the FSC is equal to 0.5, and set `lp_bandwidth: 1/cutoff_freq` in the `parameters.yaml`. This means that the in the images, the frequencies such that `freq > 1/lp_bandwidth` are set to 0.
 
 ### Second step
 

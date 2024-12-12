@@ -23,7 +23,6 @@ class Mask(torch.nn.Module):
         return x * self.mask
 
 
-
 class ImageDataSet(Dataset):
     def __init__(self, apix, side_shape, particles_df, particles_path, down_side_shape=None, down_method="interp", rad_mask=None):
         """
