@@ -6,7 +6,7 @@ import numpy as np
 from time import time
 from torch.utils.data import Dataset
 import torchvision.transforms.functional as tvf
-from pytorch3d.transforms import euler_angles_to_matrix
+from pytorch3d.transforms import euler_angles_to_matrix, axis_angle_to_matrix
 
 
 
@@ -24,17 +24,83 @@ class Mask(torch.nn.Module):
         return x * self.mask
 
 
-def starfile_reader(starfile_path):
+def starfile_reader(starfile_path, apix):
     """
     Reads a RELION starfile for the poses
     :starfile_path: str, path to the starfile
+    :apix: float, size of pixel
+    :return: torch.tensor(N_particles, 3, 3) or rotation poses as matrices, torch.tensor(N_particles, 3) of translations.
     """
-    particles_star = starfile.read(experiment_settings["star_file"])
+    particles_star = starfile.read(starfile_path)
+    particles_df = particles_star
+    if type(particles_star) is dict and "particles" in particles_star:
+        particles_df = particles_star["particles"]
+
+    euler_angles_degrees = particles_df[["rlnAngleRot", "rlnAngleTilt", "rlnAnglePsi"]].values
+    euler_angles_radians = euler_angles_degrees*np.pi/180
+    poses_rotations = euler_angles_to_matrix(torch.tensor(euler_angles_radians, dtype=torch.float32), convention="ZYZ")
+    #Transposing because ReLion has a clockwise convention, while we use a counter-clockwise convention.
+    poses_rotations = torch.transpose(poses_rotations, dim0=-2, dim1=-1)
+
+    #Reading the translations. ReLion may express the translations divided by apix. So we need to multiply by apix to recover them in Å
+    if "rlnOriginXAngst" in particles_df:
+        shiftX = torch.from_numpy(np.array(particles_df["rlnOriginXAngst"], dtype=np.float32))
+        shiftY = torch.from_numpy(np.array(particles_df["rlnOriginYAngst"], dtype=np.float32))
+    else:
+        shiftX = torch.from_numpy(np.array(particles_df["rlnOriginX"] * apix, dtype=np.float32))
+        shiftY = torch.from_numpy(np.array(particles_df["rlnOriginY"] * apix, dtype=np.float32))
+
+    poses_translation = torch.tensor(torch.vstack([shiftY, shiftX]).T, dtype=torch.float32)   
+    assert poses_translation.shape[0] == poses_rotations.shape[0], "Rotation and translation pose shapes are not matching !"
+    return poses_rotations, poses_translation
+
+
+def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
+    """
+    Reads a cs file for the poses
+    :param c_file_path: str, path to the cs file
+    :param apix: float, size of a pixel
+    :param abinit: boolean, whether the poses are the result of an ab-initio reconstruction or not.
+    :param hetrefine: boolean, whether or not the dataset is the result of heterogeneous refinment.
+    """
+    data = np.load(cs_file_path)
+    # view the first row
+    for i in range(len(data.dtype)):
+        print(i, data.dtype.names[i], data[0][i])
+
+    if abinit:
+        RKEY = "alignments_class_0/pose"
+        TKEY = "alignments_class_0/shift"
+    else:
+        RKEY = "alignments3D/pose"
+        TKEY = "alignments3D/shift"
+
+    # parse rotations
+    logger.info(f"Extracting rotations from {RKEY}")
+    rot = np.array([x[RKEY] for x in data])
+    rot = torch.tensor(rot)
+    rot_matrix = axis_angle_to_matrix(rot)
+    logger.info("Transposing rotation matrix")
+    rot_matrix = torch.transpose(rot_matrix, dim0= -2, dim1=-1)
+    logger.info(rot_matrix.shape)
+
+    # parse translations
+    logger.info(f"Extracting translations from {TKEY}")
+    trans = np.array([x[TKEY] for x in data])
+    if hetrefine:
+        logger.info("Scaling shifts by 2x")
+        trans *= 2
+    logger.info(trans.shape)
+
+    # convert translations from pixels to fraction
+    trans = torch.tensor(trans, dtype=torch.float32)[:, [1, 0]]
+    # write output
+    return rot_matrix, trans
 
 
 
 class ImageDataSet(Dataset):
-    def __init__(self, apix, side_shape, particles_df, particles_path, down_side_shape=None, down_method="interp", rad_mask=None):
+    def __init__(self, apix, side_shape, star_cs_file_config, particles_path, down_side_shape=None, down_method="interp", rad_mask=None):
         """
         Create a dataset of images and poses
         :param apix: float, size of a pixel in Å.
@@ -55,27 +121,15 @@ class ImageDataSet(Dataset):
         if rad_mask is not None:
             self.mask = Mask(side_shape, rad_mask)
 
-        print(particles_df.columns)
-        #Reading the euler angles and turning them into rotation matrices. 
-        euler_angles_degrees = particles_df[["rlnAngleRot", "rlnAngleTilt", "rlnAnglePsi"]].values
-        euler_angles_radians = euler_angles_degrees*np.pi/180
-        poses = euler_angles_to_matrix(torch.tensor(euler_angles_radians, dtype=torch.float32), convention="ZYZ")
-        #Transposing because ReLion has a clockwise convention, while we use a counter-clockwise convention.
-        poses = torch.transpose(poses, dim0=-2, dim1=-1)
-
-        #Reading the translations. ReLion may express the translations divided by apix. So we need to multiply by apix to recover them in Å
-        if "rlnOriginXAngst" in particles_df:
-            shiftX = torch.from_numpy(np.array(particles_df["rlnOriginXAngst"], dtype=np.float32))
-            shiftY = torch.from_numpy(np.array(particles_df["rlnOriginYAngst"], dtype=np.float32))
+        pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1]
+        assert pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
+        if pose_file_extension == "star":
+            self.poses, self.poses_translation = starfile_reader(star_cs_file_config["file"], self.apix)
         else:
-            shiftX = torch.from_numpy(np.array(particles_df["rlnOriginX"] * self.apix, dtype=np.float32))
-            shiftY = torch.from_numpy(np.array(particles_df["rlnOriginY"] * self.apix, dtype=np.float32))
+            self.poses, self.poses_translation = cs_file_reader(star_cs_file_config["file"], self.apix, star_cs_file_config.get("abinit", False), 
+                                                                star_cs_file_config.get("hetrefine", False))
 
-        self.poses_translation = torch.tensor(torch.vstack([shiftY, shiftX]).T, dtype=torch.float32)   
-        self.poses = poses
-        assert self.poses_translation.shape[0] == self.poses.shape[0], "Rotation and translation pose shapes are not matching !"
-        #assert torch.max(torch.abs(poses_translation)) == 0, "Only 0 translation supported as poses"
-        print("Dataset size:", self.particles_df.shape[0], "apix:",self.apix)
+        print("Dataset size:", self.poses.shape[0], "apix:",self.apix)
         print("Normalizing training data")
 
         #If a downsampling is wanted, recompute the new apix and set the new down_side_shape
