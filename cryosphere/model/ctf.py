@@ -162,17 +162,17 @@ class CTF(torch.nn.Module):
 
 		return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
-    def create_ctf(cls, file, , device="cpu", **kwargs):
-    	"""
+	def create_ctf(cls, file, , device="cpu", **kwargs):
+		"""
 		Instantiates a CTF object from cs file or star file.
 		:param file: str, path to the cs or star file
 		:param device: torch device, device to use
-    	"""
-    	assert file.endswith(".cs") or assert cs_file.endswith(".star")
-    	if file.endswith(".cs"):
-    		return self.from_cs_file(file, , device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
+		"""
+		assert file.endswith(".cs") or assert cs_file.endswith(".star")
+		if file.endswith(".cs"):
+			return self.from_cs_file(file, , device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
 
-    	return self.from_starfile(file, device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
+		return self.from_starfile(file, device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
 
 	def compute_ctf(self, indexes
 		) -> torch.Tensor:
