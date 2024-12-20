@@ -162,7 +162,7 @@ class CTF(torch.nn.Module):
 
 		return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
-	def create_ctf(cls, file, , device="cpu", **kwargs):
+	def create_ctf(cls, file, device="cpu", **kwargs):
 		"""
 		Instantiates a CTF object from cs file or star file.
 		:param file: str, path to the cs or star file
