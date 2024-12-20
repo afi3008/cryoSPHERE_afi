@@ -156,9 +156,9 @@ class CTF(torch.nn.Module):
 		)
 
 		for i, f in enumerate(fields):
-		ctf_params[:, i + 2] = metadata[f]
-		if f in ("ctf/df_angle_rad", "ctf/phase_shift_rad"):  # convert to degrees
-			ctf_params[:, i + 2] *= 180 / np.pi
+			ctf_params[:, i + 2] = metadata[f]
+			if f in ("ctf/df_angle_rad", "ctf/phase_shift_rad"):  # convert to degrees
+				ctf_params[:, i + 2] *= 180 / np.pi
 
 		return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
