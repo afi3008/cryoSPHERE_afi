@@ -122,8 +122,45 @@ class CTF(torch.nn.Module):
 			else:
 				ctf_params[:, i + 2] = df[header].values if header in df else None
 
-		return cls(*ctf_params[:, :8].T, phaseShift=None, device=device)
+		return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
+
+	def from_cs_file(cls, cs_file, , device="cpu", **kwargs):
+		"""
+		Instantiate a CTF object from cs file
+		:param cs_file: str, path the cs file
+		:param device: torch device, device to use
+		"""
+		assert cs_file.endswith(".cs")
+		metadata = np.load(cs_file)
+		#Trying to get image size and pixel size from the cs file
+		try:
+			side_n_pix = metadata["blob/shape"][0][0]
+			apix = metadata["blob/psize_A"]
+		except Exception:
+		    assert "side_shape" in kwargs and "apix" in kwargs, "side_shape, apix must be provided."
+		    side_n_pix = kwargs["side_shape"]
+		    apix = kwargs["apix"]
+
+		ctf_params = np.zeros((N, 9))
+		ctf_params[:, 0] = side_n_pix
+		ctf_params[:, 1] = apix
+		fields = (
+		    "ctf/df1_A",
+		    "ctf/df2_A",
+		    "ctf/df_angle_rad",
+		    "ctf/accel_kv",
+		    "ctf/cs_mm",
+		    "ctf/amp_contrast",
+		    "ctf/phase_shift_rad",
+		)
+
+		for i, f in enumerate(fields):
+        	ctf_params[:, i + 2] = metadata[f]
+        	if f in ("ctf/df_angle_rad", "ctf/phase_shift_rad"):  # convert to degrees
+            	ctf_params[:, i + 2] *= 180 / np.pi
+
+        return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
 	def compute_ctf(self, indexes
 		) -> torch.Tensor:
