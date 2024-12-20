@@ -142,7 +142,7 @@ class CTF(torch.nn.Module):
 		    side_n_pix = kwargs["side_shape"]
 		    apix = kwargs["apix"]
 
-		ctf_params = np.zeros((N, 9))
+		ctf_params = np.zeros((len(metadata), 9))
 		ctf_params[:, 0] = side_n_pix
 		ctf_params[:, 1] = apix
 		fields = (
