@@ -170,7 +170,7 @@ class CTF(torch.nn.Module):
 		"""
 		assert file.endswith(".cs") or cs_file.endswith(".star"), "The file for CTF must be a starfile or a cryosparc file."
 		if file.endswith(".cs"):
-			return self.from_cs_file(file, , device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
+			return self.from_cs_file(file, device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
 
 		return self.from_starfile(file, device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
 
