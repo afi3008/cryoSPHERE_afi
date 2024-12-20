@@ -125,7 +125,7 @@ class CTF(torch.nn.Module):
 		return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
 	@classmethod
-	def from_cs_file(cls, cs_file, , device="cpu", **kwargs):
+	def from_cs_file(cls, cs_file,  device="cpu", **kwargs):
 		"""
 		Instantiate a CTF object from cs file
 		:param cs_file: str, path the cs file
