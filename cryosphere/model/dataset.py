@@ -75,7 +75,7 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
         RKEY = "alignments3D/pose"
         TKEY = "alignments3D/shift"
 
-    # parse rotations
+    #parse rotations
     logger.info(f"Extracting rotations from {RKEY}")
     rot = np.array([x[RKEY] for x in data])
     rot = torch.tensor(rot)
@@ -84,7 +84,7 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
     rot_matrix = torch.transpose(rot_matrix, dim0= -2, dim1=-1)
     logger.info(rot_matrix.shape)
 
-    # parse translations
+    #parse translations
     logger.info(f"Extracting translations from {TKEY}")
     trans = np.array([x[TKEY] for x in data])
     if hetrefine:
@@ -92,9 +92,9 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
         trans *= 2
     logger.info(trans.shape)
 
-    # convert translations from pixels to fraction
+    #convert translations from pixels to fraction
     trans = torch.tensor(trans, dtype=torch.float32)[:, [1, 0]]
-    # write output
+    #write output
     return rot_matrix, trans
 
 
@@ -116,18 +116,19 @@ class ImageDataSet(Dataset):
         self.down_method = down_method
         self.apix = apix
         self.particles_path = particles_path
-        self.particles_df = particles_df
         self.mask = None
         if rad_mask is not None:
             self.mask = Mask(side_shape, rad_mask)
 
-        pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1]
-        assert pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
-        if pose_file_extension == "star":
+        self.pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1]
+        assert self.pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
+        if self.pose_file_extension == "star":
             self.poses, self.poses_translation = starfile_reader(star_cs_file_config["file"], self.apix)
+            self.particles_df = starfile.read(star_cs_file_config)
         else:
             self.poses, self.poses_translation = cs_file_reader(star_cs_file_config["file"], self.apix, star_cs_file_config.get("abinit", False), 
                                                                 star_cs_file_config.get("hetrefine", False))
+            self.particles_file = np.load(star_cs_file_config)
 
         print("Dataset size:", self.poses.shape[0], "apix:",self.apix)
         print("Normalizing training data")
@@ -170,9 +171,15 @@ class ImageDataSet(Dataset):
         # the corresponding poses rotation matrices as torch.tensor((batch_size, 3, 3)), the corresponding poses translations as torch.tensor((batch_size, 2))
         # NOTA BENE: the convention for the rotation matrix is left multiplication of the coordinates of the atoms of the protein !!
         """
-        particles = self.particles_df.iloc[idx]
         #try:
-        mrc_idx, img_name = particles["rlnImageName"].split("@")
+        if self.pose_file_extension == "star":
+            particles = self.particles_df.iloc[idx]
+            mrc_idx, img_name = particles["rlnImageName"].split("@")
+        else:
+            particles = self.particles_df[idx]
+            mrc_idx = particles["blob/idx"]
+            img_name = particles["blob/path"].decode('ascii').replace(">", "")
+
         mrc_idx = int(mrc_idx) - 1
         mrc_path = os.path.join(self.particles_path, img_name)
         with mrcfile.mmap(mrc_path, mode="r", permissive=True) as mrc:
