@@ -177,6 +177,9 @@ class ImageDataSet(Dataset):
         else:
             particles = self.particles_df[idx]
             mrc_idx = particles["blob/idx"]
+            for s in particles["blob/path"]:
+                print(s)
+                
             img_name = [s.decode('ascii').replace(">", "") for s in particles["blob/path"]]
 
         mrc_idx = int(mrc_idx) - 1
