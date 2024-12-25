@@ -140,7 +140,7 @@ class ImageDataSet(Dataset):
 
         self.f_std = None
         self.f_mu = None
-        #self.estimate_normalization()
+        self.estimate_normalization()
 
     def estimate_normalization(self):
         if self.f_mu is None and self.f_std is None:
@@ -161,6 +161,7 @@ class ImageDataSet(Dataset):
         return (images - self.avg_image.to(device))/self.std_image.to(device)
 
     def __len__(self):
+        print("Number of images:", self.particles_df.shape[0])
         return self.particles_df.shape[0]
 
     def __getitem__(self, idx):
