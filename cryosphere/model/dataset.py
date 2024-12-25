@@ -76,21 +76,15 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
         TKEY = "alignments3D/shift"
 
     #parse rotations
-    logger.info(f"Extracting rotations from {RKEY}")
     rot = np.array([x[RKEY] for x in data])
     rot = torch.tensor(rot)
     rot_matrix = axis_angle_to_matrix(rot)
-    logger.info("Transposing rotation matrix")
     rot_matrix = torch.transpose(rot_matrix, dim0= -2, dim1=-1)
-    logger.info(rot_matrix.shape)
 
     #parse translations
-    logger.info(f"Extracting translations from {TKEY}")
     trans = np.array([x[TKEY] for x in data])
     if hetrefine:
-        logger.info("Scaling shifts by 2x")
         trans *= 2
-    logger.info(trans.shape)
 
     #convert translations from pixels to fraction
     trans = torch.tensor(trans, dtype=torch.float32)[:, [1, 0]]
