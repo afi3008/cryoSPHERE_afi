@@ -182,8 +182,8 @@ class ImageDataSet(Dataset):
             print(idx)
             print(particles["blob/path"])
             mrc_idx = particles["blob/idx"]
-            #for s in particles["blob/path"]:
-            #    print(s)
+            for s in particles["blob/path"]:
+                print(s)
 
             img_name = [s.decode('ascii').replace(">", "") for s in particles["blob/path"]]
 
