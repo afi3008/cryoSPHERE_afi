@@ -130,6 +130,7 @@ class ImageDataSet(Dataset):
 
         #If a downsampling is wanted, recompute the new apix and set the new down_side_shape
         self.down_side_shape = side_shape
+        self.down_apix = apix
         if down_side_shape is not None:
             self.down_side_shape = down_side_shape
             self.down_apix = self.side_shape * self.apix /self.down_side_shape
