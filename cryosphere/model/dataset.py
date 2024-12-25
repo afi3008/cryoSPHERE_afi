@@ -120,12 +120,13 @@ class ImageDataSet(Dataset):
         if self.pose_file_extension == "star":
             self.poses, self.poses_translation = starfile_reader(star_cs_file_config["file"], self.apix)
             self.particles_df = starfile.read(star_cs_file_config["file"])
+            if type(self.particles_df) is dict and "particles" in self.particles_df:
+                self.particles_df = self.particles_df["particles"]
         else:
             self.poses, self.poses_translation = cs_file_reader(star_cs_file_config["file"], self.apix, star_cs_file_config.get("abinit", False), 
                                                                 star_cs_file_config.get("hetrefine", False))
             self.particles_df = np.load(star_cs_file_config["file"])
-            if type(self.particles_df) is dict and "particles" in self.particles_df:
-                self.particles_df = self.particles_df["particles"]
+
 
         print("Dataset size:", self.poses.shape[0], "apix:",self.apix)
         print("Normalizing training data")
