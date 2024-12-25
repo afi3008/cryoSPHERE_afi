@@ -123,7 +123,7 @@ class ImageDataSet(Dataset):
         else:
             self.poses, self.poses_translation = cs_file_reader(star_cs_file_config["file"], self.apix, star_cs_file_config.get("abinit", False), 
                                                                 star_cs_file_config.get("hetrefine", False))
-            self.particles_file = np.load(star_cs_file_config["file"])
+            self.particles_df = np.load(star_cs_file_config["file"])
 
         print("Dataset size:", self.poses.shape[0], "apix:",self.apix)
         print("Normalizing training data")
