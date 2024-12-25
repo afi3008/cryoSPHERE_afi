@@ -177,6 +177,7 @@ class ImageDataSet(Dataset):
         else:
             print(self.particles_df)
             print(self.particles_df.dtype)
+            print(self.particles_df["blob/path"])
             particles = self.particles_df[idx]
             mrc_idx = particles["blob/idx"]
             #for s in particles["blob/path"]:
