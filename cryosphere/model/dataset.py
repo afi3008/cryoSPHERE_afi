@@ -119,7 +119,7 @@ class ImageDataSet(Dataset):
         assert self.pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
         if self.pose_file_extension == "star":
             self.poses, self.poses_translation = starfile_reader(star_cs_file_config["file"], self.apix)
-            self.particles_df = starfile.read(star_cs_file_config)
+            self.particles_df = starfile.read(star_cs_file_config["file"])
         else:
             self.poses, self.poses_translation = cs_file_reader(star_cs_file_config["file"], self.apix, star_cs_file_config.get("abinit", False), 
                                                                 star_cs_file_config.get("hetrefine", False))
