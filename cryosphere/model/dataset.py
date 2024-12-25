@@ -176,6 +176,7 @@ class ImageDataSet(Dataset):
             mrc_idx, img_name = particles["rlnImageName"].split("@")
         else:
             print(self.particles_df)
+            print(self.particles_df.dtype)
             particles = self.particles_df[idx]
             mrc_idx = particles["blob/idx"]
             #for s in particles["blob/path"]:
