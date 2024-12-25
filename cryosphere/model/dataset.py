@@ -120,7 +120,8 @@ class ImageDataSet(Dataset):
         if rad_mask is not None:
             self.mask = Mask(side_shape, rad_mask)
 
-        self.pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1]
+        self.pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1].replace(".", "")
+        print("FILE EXTE", self.pose_file_extension)
         assert self.pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
         if self.pose_file_extension == "star":
             self.poses, self.poses_translation = starfile_reader(star_cs_file_config["file"], self.apix)
