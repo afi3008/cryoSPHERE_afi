@@ -175,11 +175,12 @@ class ImageDataSet(Dataset):
             particles = self.particles_df.iloc[idx]
             mrc_idx, img_name = particles["rlnImageName"].split("@")
         else:
+            print(self.particles_df)
             particles = self.particles_df[idx]
             mrc_idx = particles["blob/idx"]
-            for s in particles["blob/path"]:
-                print(s)
-                
+            #for s in particles["blob/path"]:
+            #    print(s)
+
             img_name = [s.decode('ascii').replace(">", "") for s in particles["blob/path"]]
 
         mrc_idx = int(mrc_idx) - 1
