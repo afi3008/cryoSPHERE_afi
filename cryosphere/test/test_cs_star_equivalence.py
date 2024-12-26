@@ -91,6 +91,8 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 
 	def test_dfang(self):
 		diff = np.max(torch.abs(self.ctf_cs.dfang - self.ctf_star.dfang).detach().cpu().numpy())
+		argm = np.argmax(np.max(torch.abs(self.ctf_cs.dfang - self.ctf_star.dfang).detach().cpu().numpy()))
+		print("ARG MAX:", argm)
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_volt(self):
