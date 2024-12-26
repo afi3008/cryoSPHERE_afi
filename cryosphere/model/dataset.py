@@ -65,9 +65,6 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
     """
     data = np.load(cs_file_path)
     # view the first row
-    for i in range(len(data.dtype)):
-        print(i, data.dtype.names[i], data[0][i])
-
     if abinit:
         RKEY = "alignments_class_0/pose"
         TKEY = "alignments_class_0/shift"
@@ -116,7 +113,6 @@ class ImageDataSet(Dataset):
             self.mask = Mask(side_shape, rad_mask)
 
         self.pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1].replace(".", "")
-        print("FILE EXTE", self.pose_file_extension)
         assert self.pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
         if self.pose_file_extension == "star":
             self.poses, self.poses_translation = starfile_reader(star_cs_file_config["file"], self.apix)
@@ -162,7 +158,6 @@ class ImageDataSet(Dataset):
         return (images - self.avg_image.to(device))/self.std_image.to(device)
 
     def __len__(self):
-        print("Number of images:", self.particles_df.shape[0])
         return self.particles_df.shape[0]
 
     def __getitem__(self, idx):
