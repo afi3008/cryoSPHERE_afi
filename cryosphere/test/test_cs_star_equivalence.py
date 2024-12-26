@@ -119,6 +119,13 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		diff = np.max(torch.abs(self.ctf_cs.scalefactor - self.ctf_star.scalefactor).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
+	def test_ctf(self):
+		idx = np.random.choice(range(4000), replace=False, size = 1000)
+		ctf_star = self.ctf_star.compute_ctf(idx)
+		ctf_cs = self.ctf_cs.compute_ctf(idx)
+		diff = np.max(torch.abs(ctf_cs - ctf_star).detach().cpu().numpy())
+		self.assertAlmostEqual(diff, 0.0, 5)
+
 
 
 
