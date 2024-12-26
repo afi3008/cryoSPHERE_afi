@@ -4,7 +4,7 @@ path = os.path.abspath("model")
 sys.path.append(path)
 import torch
 import unittest
-from model.dataset import ImageDataSet
+from dataset import ImageDataSet
 from torch.utils.data import DataLoader
 
 class TestCsStarEquivalence(unittest.TestCase):
