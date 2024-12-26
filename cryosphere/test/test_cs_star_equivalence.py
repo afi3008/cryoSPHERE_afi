@@ -78,8 +78,8 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 	It tests if the CTF, images and poses are the same
 	"""
 	def setUp(self):
-		self.ctf_star = CTF.create_ctf(CTF, "test_apoferritin/particles/particles.star", device="cpu", apix = 1.428, side_shape = 256)
-		self.ctf_cs = CTF.create_ctf(CTF, "test_apoferritin/J25_split_0_exported.cs", device="cpu", apix = 1.428, side_shape = 256)
+		self.ctf_star = CTF.create_ctf(CTF, "test_apoferritin/particles/particles.star", device="cpu", apix_downsize = 1.428, Npix_downsize = 256)
+		self.ctf_cs = CTF.create_ctf(CTF, "test_apoferritin/J25_split_0_exported.cs", device="cpu", apix_downsize = 1.428, Npix_downsize = 256)
 
 	def test_dfU(self):
 		diff = np.max(torch.abs(self.ctf_cs.dfU - self.ctf_star.dfU).detach().cpu().numpy())
