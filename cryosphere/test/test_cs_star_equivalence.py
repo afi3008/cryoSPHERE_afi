@@ -13,11 +13,10 @@ class TestCsStarEquivalence(unittest.TestCase):
 	It tests if the CTF, images and poses are the same
 	"""
 	def setUp(self):
-		star_particles_path = "test_apoferritin/particles/"
-		star_config = {"file": "test_apoferritin/particles/particles.star"}
-		cs_file = {"file": "test_apoferritin/J25_split_0_exported.cs"}
-		self.cs_dataset = ImageDataSet(apix=1.428, side_shape=256, star_cs_file_config=cs_file,particles_path="test_apoferritin")
-		self.star_dataset = ImageDataSet(apix=1.428, side_shape=256, star_cs_file_config=star_config,particles_path="test_apoferritin/particles/")
+		self.star_config = {"file": "test_apoferritin/particles/particles.star"}
+		self.cs_file = {"file": "test_apoferritin/J25_split_0_exported.cs"}
+		self.cs_dataset = ImageDataSet(apix=1.428, side_shape=256, star_cs_file_config=self.cs_file,particles_path="test_apoferritin")
+		self.star_dataset = ImageDataSet(apix=1.428, side_shape=256, star_cs_file_config=self.star_config,particles_path="test_apoferritin/particles/")
 
 	def test_images(self):
 		torch.manual_seed(0)
