@@ -83,6 +83,7 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
 
     #parse translations
     trans = np.array([x[TKEY] for x in data])
+    trans *= apix
     if hetrefine:
         trans *= 2
 
@@ -140,7 +141,7 @@ class ImageDataSet(Dataset):
 
         self.f_std = None
         self.f_mu = None
-        self.estimate_normalization()
+        #self.estimate_normalization()
 
     def estimate_normalization(self):
         if self.f_mu is None and self.f_std is None:
