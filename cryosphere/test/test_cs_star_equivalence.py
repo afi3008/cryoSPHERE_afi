@@ -124,6 +124,9 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		ctf_star = self.ctf_star.compute_ctf(idx)
 		ctf_cs = self.ctf_cs.compute_ctf(idx)
 		diff = np.max(torch.abs((ctf_cs - ctf_star)/ctf_star).detach().cpu().numpy())
+		print(ctf_star[0])
+		print("\n")
+		print(ctf_cs[0])
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 
