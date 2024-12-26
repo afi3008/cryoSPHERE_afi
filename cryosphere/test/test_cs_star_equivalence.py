@@ -8,6 +8,7 @@ import sys
 sys.path.insert(1, '../model')
 from torch.utils.data import DataLoader
 from dataset import ImageDataSet
+import numpy as np
 
 class TestCsStarEquivalence(unittest.TestCase):
 	"""
@@ -29,7 +30,7 @@ class TestCsStarEquivalence(unittest.TestCase):
 		_, batch_images_cs, batch_poses_cs, batch_poses_translation_cs, fproj_cs = next(data_loader_cs)
 		_, batch_images_star, batch_poses_star, batch_poses_translation_star, fproj_star = next(data_loader_star)
 
-		diff = torch.max(torch.abs(batch_images_cs - batch_images_star)).detach().cpu().numpy()
+		diff = np.max(torch.abs(batch_images_cs - batch_images_star).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_rotations(self):
@@ -40,7 +41,7 @@ class TestCsStarEquivalence(unittest.TestCase):
 		_, batch_images_cs, batch_poses_cs, batch_poses_translation_cs, fproj_cs = next(data_loader_cs)
 		_, batch_images_star, batch_poses_star, batch_poses_translation_star, fproj_star = next(data_loader_star)
 
-		diff = torch.max(torch.abs(batch_poses_cs - batch_poses_star))
+		diff = np.max(torch.abs(batch_poses_cs - batch_poses_star).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_translations(self):
