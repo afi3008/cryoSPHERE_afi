@@ -176,6 +176,7 @@ class ImageDataSet(Dataset):
         if self.pose_file_extension == "star":
             particles = self.particles_df.iloc[idx]
             mrc_idx, img_name = particles["rlnImageName"].split("@")
+            mrc_idx = int(mrc_idx) - 1
         else:
             particles = self.particles_df[idx]
             mrc_idx = particles["blob/idx"]
@@ -184,7 +185,6 @@ class ImageDataSet(Dataset):
             else:
                 img_name = [s.decode('ascii').replace(">", "") for s in particles["blob/path"]]
 
-        mrc_idx = int(mrc_idx) - 1
         mrc_path = os.path.join(self.particles_path, img_name)
         with mrcfile.mmap(mrc_path, mode="r", permissive=True) as mrc:
             if mrc.data.ndim > 2:
