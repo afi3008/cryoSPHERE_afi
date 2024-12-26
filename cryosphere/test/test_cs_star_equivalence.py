@@ -15,6 +15,7 @@ class TestCsStarEquivalence(unittest.TestCase):
 	def setUp(self):
 		self.star_config = {"file": "test_apoferritin/particles/particles.star"}
 		self.cs_file = {"file": "test_apoferritin/J25_split_0_exported.cs"}
+		print(ImageDataSet.__init__.__code__.co_varnames)
 		self.cs_dataset = ImageDataSet(apix=1.428, side_shape=256, star_cs_file_config=self.cs_file,particles_path="test_apoferritin")
 		self.star_dataset = ImageDataSet(apix=1.428, side_shape=256, star_cs_file_config=self.star_config,particles_path="test_apoferritin/particles/")
 
