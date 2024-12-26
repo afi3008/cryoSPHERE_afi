@@ -128,7 +128,7 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		print(ctf_star[0])
 		print("\n")
 		print(ctf_cs[0])
-		print("MAXMAXMAX", torch.amax(torch.abs(ctf_star - ctf_cs)), dim=(1, 2))
+		print("MAXMAXMAX", torch.amax(torch.abs(ctf_star - ctf_cs), dim=(1, 2)))
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 
