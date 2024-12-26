@@ -4,8 +4,10 @@ path = os.path.abspath("model")
 sys.path.append(path)
 import torch
 import unittest
+import sys
+sys.path.insert(1, '../model')
 from torch.utils.data import DataLoader
-from cryosphere.model.dataset import ImageDataSet
+from dataset import ImageDataSet
 
 class TestCsStarEquivalence(unittest.TestCase):
 	"""
