@@ -82,41 +82,41 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		self.ctf_cs = CTF.create_ctf(CTF, "test_apoferritin/J25_split_0_exported.cs", device="cpu", apix_downsize = 1.428, Npix_downsize = 256)
 
 	def test_dfU(self):
-		diff = np.max(torch.abs(self.ctf_cs.dfU - self.ctf_star.dfU).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.dfU - self.ctf_star.dfU)/self.ctf_star.dfU).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_dfV(self):
-		diff = np.max(torch.abs(self.ctf_cs.dfV - self.ctf_star.dfV).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.dfV - self.ctf_star.dfV)/self.ctf_star.dfV).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_dfang(self):
-		diff = np.max(torch.abs(self.ctf_cs.dfang - self.ctf_star.dfang).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.dfang - self.ctf_star.dfang)/self.ctf_star.dfang).detach().cpu().numpy())
 		argm = np.argmax(np.max(torch.abs(self.ctf_cs.dfang - self.ctf_star.dfang).detach().cpu().numpy()))
 		print("ARG MAX:", argm)
 		self.assertAlmostEqual(diff, 0.0, 4)
 
 	def test_volt(self):
-		diff = np.max(torch.abs(self.ctf_cs.volt - self.ctf_star.volt).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.volt - self.ctf_star.volt)/self.ctf_star.volt).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_cs(self):
-		diff = np.max(torch.abs(self.ctf_cs.cs - self.ctf_star.cs).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.cs - self.ctf_star.cs)/self.ctf_star.cs).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_w(self):
-		diff = np.max(torch.abs(self.ctf_cs.w - self.ctf_star.w).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.w - self.ctf_star.w)/self.ctf_star.w).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_phaseShift(self):
-		diff = np.max(torch.abs(self.ctf_cs.phaseShift - self.ctf_star.phaseShift).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.phaseShift - self.ctf_star.phaseShift)/self.ctf_star.phaseShift).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_scalefactor(self):
-		diff = np.max(torch.abs(self.ctf_cs.scalefactor - self.ctf_star.scalefactor).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.scalefactor - self.ctf_star.scalefactor)/self.ctf_star.scalefactor).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)	
 
 	def test_bfactor(self):
-		diff = np.max(torch.abs(self.ctf_cs.scalefactor - self.ctf_star.scalefactor).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.scalefactor - self.ctf_star.scalefactor)/self.ctf_star.scalefactor).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_ctf(self):
