@@ -108,7 +108,7 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_phaseShift(self):
-		diff = np.max(torch.abs((self.ctf_cs.phaseShift - self.ctf_star.phaseShift)/self.ctf_star.phaseShift).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.phaseShift - self.ctf_star.phaseShift)).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_scalefactor(self):
@@ -116,7 +116,7 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		self.assertAlmostEqual(diff, 0.0, 5)	
 
 	def test_bfactor(self):
-		diff = np.max(torch.abs((self.ctf_cs.scalefactor - self.ctf_star.scalefactor)/self.ctf_star.scalefactor).detach().cpu().numpy())
+		diff = np.max(torch.abs((self.ctf_cs.bfactor - self.ctf_star.bfactor)/self.ctf_star.bfactor).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
 	def test_ctf(self):
