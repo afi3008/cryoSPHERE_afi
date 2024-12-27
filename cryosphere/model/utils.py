@@ -225,12 +225,9 @@ def parse_yaml(path, analyze=False):
         raise Exception("Optimizer must be Adam")
 
 
-    particles_star = starfile.read(experiment_settings["star_file"])
-    ctf_experiment = CTF.create_ctf(experiment_settings["star_file"], apix = apix_downsize, side_shape=Npix_downsize , device=device)
-    if type(particles_star) is dict and "particles" in particles_star:
-        dataset = ImageDataSet(apix, Npix, particles_star["particles"], particles_path, down_side_shape=Npix_downsize, rad_mask=experiment_settings.get("input_mask_radius"))
-    else:
-        dataset = ImageDataSet(apix, Npix, particles_star, particles_path, down_side_shape=Npix_downsize)
+    cs_star_config = starfile.read(experiment_settings["cs_star_file"])
+    ctf_experiment = CTF.create_ctf(experiment_settings["cs_star_file"], apix = apix_downsize, side_shape=Npix_downsize , device=device)
+    dataset = ImageDataSet(apix, Npix, cs_star_config, particles_path, down_side_shape=Npix_downsize, rad_mask=experiment_settings.get("input_mask_radius"))
 
     scheduler = None
     if "scheduler" in experiment_settings:
