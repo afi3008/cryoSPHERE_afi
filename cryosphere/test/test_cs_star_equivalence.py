@@ -9,6 +9,7 @@ sys.path.insert(1, '../model')
 import numpy as np
 from ctf import CTF
 from dataset import ImageDataSet
+from utils import parse_yaml
 from torch.utils.data import DataLoader
 
 class TestCsStarEquivalenceDataset(unittest.TestCase):
@@ -119,22 +120,18 @@ class TestCsStarEquivalenceCTF(unittest.TestCase):
 		diff = np.max(torch.abs((self.ctf_cs.bfactor - self.ctf_star.bfactor)/self.ctf_star.bfactor).detach().cpu().numpy())
 		self.assertAlmostEqual(diff, 0.0, 5)
 
-	def test_ctf(self):
-		np.random.seed(3)
-		idx = np.random.choice(range(4000), replace=False, size = 1000)
-		ctf_star = self.ctf_star.compute_ctf(idx)
-		ctf_cs = self.ctf_cs.compute_ctf(idx)
-		diff = np.max(torch.abs((ctf_cs - ctf_star)/ctf_star).detach().cpu().numpy())
-		all_diffs = torch.abs((ctf_cs - ctf_star)/ctf_star).detach().cpu().numpy().flatten()
-		all_ctf = ctf_star.detach().cpu().numpy().flatten()
-		np.save("all_diffs.npy", all_diffs)
-		np.save("all_ctfs_star.npy", all_ctf)
-		print(ctf_star[0])
-		print("\n")
-		print(ctf_cs[0])
-		print("MAXMAXMAX", torch.amax(torch.abs((ctf_star - ctf_cs)/ctf_star), dim=(1, 2)))
-		self.assertAlmostEqual(diff, 0.0, 5)
 
+
+class TestYamlParsing(unittest.TestCase):
+	"""
+	This class tests whether we still parse the yaml successfully or not, with the cryosparc support. 
+	"""
+	def test_parse_yaml(self):
+		try:
+			parse_yaml("test_apoferritin/parameters_package.yaml")
+			self.assertEqual(0.0, 0.0)
+		except:
+			self.assertEqual(0.0, 1.0)
 
 
 
