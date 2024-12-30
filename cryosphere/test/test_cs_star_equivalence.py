@@ -11,6 +11,7 @@ from ctf import CTF
 from dataset import ImageDataSet
 from utils import parse_yaml
 from torch.utils.data import DataLoader
+import inspect
 
 class TestCsStarEquivalenceDataset(unittest.TestCase):
 	"""
@@ -127,6 +128,7 @@ class TestYamlParsing(unittest.TestCase):
 	This class tests whether we still parse the yaml successfully or not, with the cryosparc support. 
 	"""
 	def test_parse_yaml(self):
+		print(inspect.getmembers(CTF, predicate=inspect.ismethod))
 		try:
 			parse_yaml("test_apoferritin/parameters_package.yaml")
 			self.assertEqual(0.0, 0.0)
