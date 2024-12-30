@@ -128,7 +128,7 @@ def set_wandb(experiment_settings):
             config={
                 "learning_rate": experiment_settings["optimizer"]["learning_rate"],
                 "architecture": "VAE",
-                "dataset": experiment_settings["star_file"],
+                "dataset": experiment_settings["cs_star_file"],
                 "epochs": experiment_settings["N_epochs"],
             })
 
