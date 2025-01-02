@@ -137,7 +137,7 @@ class ImageDataSet(Dataset):
 
         self.f_std = None
         self.f_mu = None
-        #self.estimate_normalization()
+        self.estimate_normalization()
 
     def estimate_normalization(self):
         if self.f_mu is None and self.f_std is None:
