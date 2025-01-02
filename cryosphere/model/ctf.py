@@ -163,12 +163,13 @@ class CTF(torch.nn.Module):
 		return cls(*ctf_params[:, :8].T, phaseShift=ctf_params[:, 8], device=device)
 
 	@classmethod
-	def create_ctf(cls, file, device="cpu", **kwargs):
+	def create_ctf(cls, cs_star_config, device="cpu", **kwargs):
 		"""
 		Instantiates a CTF object from cs file or star file.
-		:param file: str, path to the cs or star file
+		:param cs_star_config: dictionnary, containing the path to the cs or star file, if it is the product of ab initio reconstruction and if its from heterogeneous refinement
 		:param device: torch device, device to use
 		"""
+		file = file["file"]
 		assert file.endswith(".cs") or file.endswith(".star"), "The file for CTF must be a starfile or a cryosparc file."
 		if file.endswith(".cs"):
 			return cls.from_cs_file(file, device=device, apix = kwargs["apix"], side_shape = kwargs["side_shape"])
