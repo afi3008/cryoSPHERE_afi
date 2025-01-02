@@ -171,9 +171,9 @@ class CTF(torch.nn.Module):
 		"""
 		assert file.endswith(".cs") or file.endswith(".star"), "The file for CTF must be a starfile or a cryosparc file."
 		if file.endswith(".cs"):
-			return cls.from_cs_file(file, device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
+			return cls.from_cs_file(file, device=device, apix = kwargs["apix"], side_shape = kwargs["side_shape"])
 
-		return cls.from_starfile(file, device=device, apix = kwargs["apix_downsize"], side_shape = kwargs["Npix_downsize"])
+		return cls.from_starfile(file, device=device, apix = kwargs["apix"], side_shape = kwargs["side_shape"])
 
 	def compute_ctf(self, indexes
 		) -> torch.Tensor:
