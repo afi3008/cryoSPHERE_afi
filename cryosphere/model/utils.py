@@ -265,7 +265,7 @@ def parse_yaml(path, analyze=False):
     logging.info(f"Running cryoSPHERE on folder: {folder_path}")
     logging.info(f"Running cryoSPHERE using device: {device}")
     logging.info(f"Find checkpoints at {path_results}")
-    logging.info(f"Using particles: {particles_path}. Using starfile: {experiment_settings['star_file']}.")
+    logging.info(f"Using particles: {particles_path}. Using starfile: {cs_star_config["file"]}.")
     logging.info(f"Running the amortized version of cryoSPHERE: {amortized}. Training for {N_epochs} epochs.")
     logging.info(f"Image size: {Npix}. Pixel size: {apix}. Running cryoSPHERE on downsampled images of size: {Npix_downsize} with pixel size {apix_downsize}.")
     logging.info(f"""Low pass filtering bandwidth: {experiment_settings.get("lp_bandwidth")}. Input images mask radius: {experiment_settings.get('input_mask_radius')}. Correlation loss radius: {experiment_settings.get("loss_mask_radius")}.""")
