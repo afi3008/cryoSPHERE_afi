@@ -134,14 +134,16 @@ class CTF(torch.nn.Module):
 		assert cs_file.endswith(".cs")
 		metadata = np.load(cs_file)
 		#Trying to get image size and pixel size from the cs file
-		try:
-			side_n_pix = metadata["blob/shape"][0][0]
-			apix = metadata["blob/psize_A"]
-		except Exception:
-		    assert "side_shape" in kwargs and "apix" in kwargs, "side_shape, apix must be provided."
-		    side_n_pix = kwargs["side_shape"]
+		if "side_shape" in kwargs and "apix" in kwargs:
+			side_n_pix = kwargs["side_shape"]
 		    apix = kwargs["apix"]
-
+		else:
+			try:
+				side_n_pix = metadata["blob/shape"][0][0]
+				apix = metadata["blob/psize_A"]
+			except Exception:
+			    assert "side_shape" in kwargs and "apix" in kwargs, "side_shape, apix must be provided."
+	
 		ctf_params = np.zeros((len(metadata), 9))
 		ctf_params[:, 0] = side_n_pix
 		ctf_params[:, 1] = apix
