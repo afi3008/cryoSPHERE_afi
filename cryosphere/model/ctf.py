@@ -169,7 +169,7 @@ class CTF(torch.nn.Module):
 		:param cs_star_config: dictionnary, containing the path to the cs or star file, if it is the product of ab initio reconstruction and if its from heterogeneous refinement
 		:param device: torch device, device to use
 		"""
-		file = file["file"]
+		file = cs_star_config["file"]
 		assert file.endswith(".cs") or file.endswith(".star"), "The file for CTF must be a starfile or a cryosparc file."
 		if file.endswith(".cs"):
 			return cls.from_cs_file(file, device=device, apix = kwargs["apix"], side_shape = kwargs["side_shape"])
