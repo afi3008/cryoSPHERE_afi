@@ -11,6 +11,8 @@ import mrcfile
 import warnings
 import starfile
 import numpy as np
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 from vae import VAE
 from mlp import MLP
 from ctf import CTF
