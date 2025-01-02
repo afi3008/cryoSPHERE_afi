@@ -136,7 +136,7 @@ class CTF(torch.nn.Module):
 		#Trying to get image size and pixel size from the cs file
 		if "side_shape" in kwargs and "apix" in kwargs:
 			side_n_pix = kwargs["side_shape"]
-		    apix = kwargs["apix"]
+			apix = kwargs["apix"]
 		else:
 			try:
 				side_n_pix = metadata["blob/shape"][0][0]
