@@ -11,7 +11,8 @@ import mrcfile
 import warnings
 import starfile
 import numpy as np
-from cryosphere.model.ctf import CTF
+#from cryosphere.model.ctf import CTF
+from ctf import CTF
 from cryosphere.model.vae import VAE
 from cryosphere.model.mlp import MLP
 import pandas as pd
