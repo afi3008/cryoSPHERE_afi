@@ -1,6 +1,6 @@
-import dataclasses
 import gemmi
 import numpy as np
+import dataclasses
 import biotite.structure as struc
 from biotite.structure.io.pdb import PDBFile
 

@@ -11,21 +11,20 @@ import mrcfile
 import warnings
 import starfile
 import numpy as np
-#from cryosphere.model.ctf import CTF
+from vae import VAE
+from mlp import MLP
 from ctf import CTF
-from cryosphere.model.vae import VAE
-from cryosphere.model.mlp import MLP
 import pandas as pd
 from tqdm import tqdm
-from cryosphere.model.polymer import Polymer
+from polymer import Polymer
 import torch.nn.functional as F
-from cryosphere.model.dataset import ImageDataSet
+from dataset import ImageDataSet
 from scipy.spatial import distance
-from cryosphere.model.gmm import Gaussian, EMAN2Grid
+from gmm import Gaussian, EMAN2Grid
 from biotite.structure.io.pdb import PDBFile
 from pytorch3d.transforms import Transform3d
 from pytorch3d.transforms import quaternion_to_axis_angle, axis_angle_to_matrix, axis_angle_to_quaternion, quaternion_apply
-from cryosphere.model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
+from loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
 
 
 def primal_to_fourier2d(images):

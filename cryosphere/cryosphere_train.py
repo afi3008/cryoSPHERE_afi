@@ -1,17 +1,17 @@
 import sys
 import torch
 import wandb
+import model
 import logging
 import argparse
-from cryosphere import model
 import numpy as np
 from tqdm import tqdm
 from time import time
-from cryosphere.model import renderer
+from model import renderer
 import torch.nn.functional as F
-from cryosphere.model.utils import low_pass_images
+from model.utils import low_pass_images
 from torch.utils.data import DataLoader
-from cryosphere.model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
+from model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
 
 
 import matplotlib.pyplot as plt
