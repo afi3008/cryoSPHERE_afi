@@ -110,7 +110,7 @@ class ImageDataSet(Dataset):
         self.particles_path = particles_path
         self.mask = None
         if rad_mask is not None:
-            self.mask = Mask(side_shape, rad_mask)
+            self.mask = Mask(down_side_shape if down_side_shape is not None else side_shape, rad_mask)
 
         self.pose_file_extension = os.path.splitext(star_cs_file_config["file"])[-1].replace(".", "")
         assert self.pose_file_extension in ["cs", "star"], "Pose file must be a starfile or a cs file."
