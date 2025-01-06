@@ -342,35 +342,6 @@ class SpatialGridTranslate(torch.nn.Module):
         return sampled[:, 0, :, :]
 
 
-def compute_segmentation_prior(N_residues, N_segments, device):
-    """
-    Computes the segmentation prior if "uniform" is set in the yaml file
-    :param N_residues: integer, number of residues
-    :param N_segments: integer, number of domains
-    :param device: str, device to use
-    :return: dict of means and std for each prior over the parameters of the GMM.
-    """
-    bound_0 = N_residues / N_segments
-    segmentation_means_mean = torch.tensor(np.array([bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
-                          device=device)[None, :]
-
-    segmentation_means_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
-
-    segmentation_stds_mean = torch.tensor(np.ones(N_segments) * bound_0, dtype=torch.float32, device=device)[None, :]
-
-    segmentation_stds_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
-
-    segmentation_proportions_mean = torch.tensor(np.ones(N_segments) * 0, dtype=torch.float32, device=device)[None, :]
-
-    segmentation_proportions_std = torch.tensor(np.ones(N_segments), dtype=torch.float32, device=device)[None, :]
-
-    segmentation_prior = {}
-    segmentation_prior["means"] = {"mean":segmentation_means_mean, "std":segmentation_means_std}
-    segmentation_prior["stds"] = {"mean":segmentation_stds_mean, "std":segmentation_stds_std}
-    segmentation_prior["proportions"] = {"mean":segmentation_proportions_mean, "std":segmentation_proportions_std}
-
-    return segmentation_prior
-
 def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, pred_im, true_im):
     """
     Monitors the training process through wandb and saving models. The metrics are logged into a file and optionnally sent to Weight and Biases.
