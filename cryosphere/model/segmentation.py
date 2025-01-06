@@ -87,26 +87,28 @@ class Segmentation():
 	        segmentation_prior = {}
 	        if "segmentation_prior" not in part:
 	        	#Create a prior with values taken uniformly
-	        	N_segm = part["N_segm"]
-				start_res = part["start_res"]
-				end_res = part["end_res"]
-				N_res = end_res - start_res
-    			bound_0 = N_res / N_segm
-    			segmentation_means_mean = torch.tensor(np.array([start_res + bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
-                          device=device)[None, :]
-    			segmentation_means_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
-    			segmentation_stds_mean = torch.tensor(np.ones(N_segments) * bound_0, dtype=torch.float32, device=device)[None, :]
-    			segmentation_stds_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
-    			segmentation_proportions_mean = torch.tensor(np.ones(N_segments) * 0, dtype=torch.float32, device=device)[None, :]
-    			segmentation_proportions_std = torch.tensor(np.ones(N_segments), dtype=torch.float32, device=device)[None, :]
-				self.segmentation_prior["means"] = {"mean":segmentation_means_mean, "std":segmentation_means_std}
-				self.segmentation_prior["stds"] = {"mean":segmentation_stds_mean, "std":segmentation_stds_std}
-				self.segmentation_prior["proportions"] = {"mean":segmentation_proportions_mean, "std":segmentation_proportions_std}
+	        	for part in segmentation_config:
+		        	N_segm = part["N_segm"]
+					start_res = part["start_res"]
+					end_res = part["end_res"]
+					N_res = end_res - start_res
+	    			bound_0 = N_res / N_segm
+	    			segmentation_means_mean = torch.tensor(np.array([start_res + bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
+	                          device=device)[None, :]
+	    			segmentation_means_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
+	    			segmentation_stds_mean = torch.tensor(np.ones(N_segments) * bound_0, dtype=torch.float32, device=device)[None, :]
+	    			segmentation_stds_std = torch.tensor(np.ones(N_segments) * 10.0, dtype=torch.float32, device=device)[None, :]
+	    			segmentation_proportions_mean = torch.tensor(np.ones(N_segments) * 0, dtype=torch.float32, device=device)[None, :]
+	    			segmentation_proportions_std = torch.tensor(np.ones(N_segments), dtype=torch.float32, device=device)[None, :]
+					self.segmentation_prior[part]["means"] = {"mean":segmentation_means_mean, "std":segmentation_means_std}
+					self.segmentation_prior[part]["stds"] = {"mean":segmentation_stds_mean, "std":segmentation_stds_std}
+					self.segmentation_prior[part]["proportions"] = {"mean":segmentation_proportions_mean, "std":segmentation_proportions_std}
 
 			else:
 				# Otherwise just take the prior values input by the user.
-				for type_value in ["means", "stds", "proportions"]
-					self.segmentation_prior[type_value] = {"mean":part["segmentation_prior"][f"{type_value}_means"], "std":part["segmentation_prior"][f"{type_value}_stds"]}
+				for part in segmentation_config:
+					for type_value in ["means", "stds", "proportions"]
+						self.segmentation_prior[part][type_value] = {"mean":part["segmentation_prior"][f"{type_value}_means"], "std":part["segmentation_prior"][f"{type_value}_stds"]}
 
 
 
