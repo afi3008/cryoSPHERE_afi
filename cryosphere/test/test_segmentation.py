@@ -4,6 +4,7 @@ import torch
 import unittest
 import pytorch3d
 import numpy as np
+from utils import parse_yaml
 path = os.path.abspath("model")
 sys.path.append(path)
 sys.path.insert(1, '../model')
@@ -94,6 +95,17 @@ class TestMovingResidues(unittest.TestCase):
 
 
 		self.assertEqual(np.max(distances[:, mask==0].detach().cpu().numpy()), 0.0)
+
+
+	def test_yaml_parsing(self):
+		"""
+		Tests if the yaml parsing still works well
+		"""
+		try:
+			parse_yaml("test_apoferritin/parameters_package.yaml")
+			self.assertEqual(0.0, 0.0)
+		except:
+			self.assertEqual(0.0, 1.0)
 
 
 
