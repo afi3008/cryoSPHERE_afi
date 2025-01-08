@@ -27,7 +27,7 @@ def train(yaml_setting_path):
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment
     """
     (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters) = model.utils.parse_yaml(yaml_setting_path)
+    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter) = model.utils.parse_yaml(yaml_setting_path)
 
     for epoch in range(N_epochs):
         tracking_metrics = {"wandb":experiment_settings["wandb"], "epoch": epoch, "path_results":path_results ,"correlation_loss":[], "kl_prior_latent":[], 
@@ -49,9 +49,9 @@ def train(yaml_setting_path):
             else:
                 latent_variables, latent_mean, latent_std = vae.sample_latent(None, indexes)
 
-            segmentation = vae.sample_segmentation(batch_images.shape[0])
+            segmentation = segmenter.sample_segments(batch_images.shape[0])
             quaternions_per_domain, translations_per_domain = vae.decode(latent_variables)
-            translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation)
+            translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation, base_structure.shape[0], batch_size, device)
             predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, device)
             posed_predicted_structures = renderer.rotate_structure(predicted_structures, batch_poses)
             predicted_images  = renderer.project(posed_predicted_structures, gmm_repr.sigmas, gmm_repr.amplitudes, grid)

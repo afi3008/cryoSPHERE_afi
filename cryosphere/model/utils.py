@@ -23,6 +23,7 @@ import torch.nn.functional as F
 from dataset import ImageDataSet
 from scipy.spatial import distance
 from gmm import Gaussian, EMAN2Grid
+from segmentation import Segmentation
 from biotite.structure.io.pdb import PDBFile
 from pytorch3d.transforms import Transform3d
 from pytorch3d.transforms import quaternion_to_axis_angle, axis_angle_to_matrix, axis_angle_to_quaternion, quaternion_apply
@@ -192,9 +193,7 @@ def parse_yaml(path, analyze=False):
                   experiment_settings["decoder"]["hidden_dimensions"], network_type="decoder", device=device)
 
 
-    vae = VAE(encoder, decoder, device, N_segments = experiment_settings["N_segments"], N_residues= experiment_settings["N_residues"],
-              tau_segmentation=experiment_settings["tau_segmentation"], segmentation_start_values=experiment_settings["segmentation_start"],
-               latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
+    vae = VAE(encoder, decoder, device, latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
     vae.to(device)
     if experiment_settings["resume_training"]["model"]:
         vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
@@ -208,6 +207,10 @@ def parse_yaml(path, analyze=False):
     gmm_repr = Gaussian(torch.tensor(base_structure.coord, dtype=torch.float32, device=device), 
                 torch.ones((base_structure.coord.shape[0], 1), dtype=torch.float32, device=device)*image_settings["sigma_gmm"], 
                 amplitudes)
+    residues_chain = base_structure.chain_id
+    residues_indexes = np.array([i for i in range(len(residues_chain))])
+
+    segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"])
 
     assert experiment_settings["segmentation_prior"]["type"] == "uniform", "Currently, only uniform prior over the segmentation is accepted"
     if experiment_settings["segmentation_prior"]["type"] == "uniform":
@@ -219,7 +222,7 @@ def parse_yaml(path, analyze=False):
             optimizer = torch.optim.Adam(vae.parameters(), lr=experiment_settings["optimizer"]["learning_rate"])
         else:
             list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
-                          vae.named_parameters() if "segmentation" in name]
+                          segmenter.named_parameters() if "segmentation" in name]
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             optimizer = torch.optim.Adam(list_param)
@@ -286,7 +289,7 @@ def parse_yaml(path, analyze=False):
 
 
     return vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, \
-    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters
+    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter
 
 
 class SpatialGridTranslate(torch.nn.Module):
@@ -359,9 +362,10 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
         wandb.log({"epoch": tracking_metrics["epoch"]})
         wandb.log({"lr_segmentation":optimizer.param_groups[0]['lr']})
         wandb.log({"lr":optimizer.param_groups[1]['lr']})
-        hard_segments = np.argmax(segmentation.detach().cpu().numpy(), axis=-1)
-        for l in range(experiment_settings["N_segments"]):
-            wandb.log({f"segments/segment_{l}": np.sum(hard_segments[0] == l)})
+        for part, segm in segmentation.items():
+            hard_segments = np.argmax(segm["segmentation"].detach().cpu().numpy(), axis=-1)
+            for l in range(segm["segmentation"].shape[-1]):
+                wandb.log({f"segments/{part}/segment_{l}": np.sum(hard_segments[0] == l)})
 
 
         pred_im = pred_im[0].detach().cpu().numpy()[:, :, None]
@@ -400,7 +404,7 @@ def read_pdb(path):
 
 def compute_rotations_per_residue_einops(quaternions, segmentation, device):
     """
-    Computes the rotation matrix corresponding to each residue.
+    Computes the rotation matrix corresponding to each residue, for the part we want to tackle.
     :param quaternions: tensor (N_batch, N_segments, 4) of non normalized quaternions defining rotations
     :param segmentation: tensor (N_batch, N_residues, N_segments)
     :return: tensor (N_batch, N_residues, 3, 3) rotation matrix for each residue
@@ -445,27 +449,40 @@ def rotate_residues_einops(atom_positions, quaternions, segmentation, device):
 
     return atom_positions
 
-def compute_translations_per_residue(translation_vectors, segmentation):
+def compute_translations_per_residue(translation_vectors, segmentations, N_residues, batch_size, device):
     """
     Computes one translation vector per residue based on the segmentation
-    :param translation_vectors: torch.tensor (Batch_size, N_segments, 3) translations for each domain
-    :param segmentation: torch.tensor(N_batch, N_residues, N_segments) weights of the segmentation
+    :param translation_vectors: dictionnary, for each part of the protein torch.tensor (Batch_size, N_segments, 3) translations for each domain 
+    :param segmentations: dictionnary of torch.tensor(N_batch, N_residues, N_segments) representing the weights of the segmentation
+                         and mask to find the relevant residues among the protein.
+    :param N_residues: integer, total number of residues in the protein
+    :param batch_size: integer, size of the batch.
+    :param device: torch device on which we perform the computations.
     :return: translation per residue torch.tensor(batch_size, N_residues, 3)
     """
-    translation_per_residue = torch.einsum("bij, bjk -> bik", segmentation, translation_vectors)
+    translation_per_residue = torch.zeros((batch_size, N_residues, 3), dtype=torch.float32, device=device)
+    for part, segm in segmentations.items():
+        translation_per_residue[:, segm["mask"] == 1] += torch.einsum("bij, bjk -> bik", segm["segmentation"], translation_vectors[part])
+
     return translation_per_residue
 
-def deform_structure(atom_positions, translation_per_residue, quaternions, segmentation, device):
+def deform_structure(atom_positions, translation_per_residue, quaternions, segmentations, device):
     """
     Deform the base structure according to rotations and translation of each segment, together with the segmentation.
     :param atom_positions: torch.tensor(N_residues, 3)
     :param translation_per_residue: tensor (Batch_size, N_residues, 3)
     :param quaternions: tensor (N_batch, N_segments, 4) of quaternions for the rotation of the segments
-    :param segmentation: torch.tensor(N_batch, N_residues, N_segments) weights of the segmentation
+    :param segmentations: dictionnary of torch.tensor(N_batch, N_residues, N_segments) representing the weights of the segmentation 
+                          and mask to find the relevant residues among the protein.
     :param device: torch device on which the computation takes place
     :return: tensor (Batch_size, N_residues, 3) corresponding to translated structure
     """
-    transformed_atom_positions = rotate_residues_einops(atom_positions, quaternions, segmentation, device)
+    batch_size = translation_per_residue.shape[0]
+    transformed_atom_positions = atom_positions
+    for part, segm in segmentations.items():
+        transformed_atom_positions[:, segm["mask"]==1]  = rotate_residues_einops(atom_positions[:, segm["mask"]==1] , quaternions[part], segm["segmentation"], device)
+
+
     new_atom_positions = transformed_atom_positions + translation_per_residue
     return new_atom_positions
 
