@@ -56,7 +56,7 @@ def train(yaml_setting_path):
             posed_predicted_structures = renderer.rotate_structure(predicted_structures, batch_poses)
             predicted_images  = renderer.project(posed_predicted_structures, gmm_repr.sigmas, gmm_repr.amplitudes, grid)
             batch_predicted_images = renderer.apply_ctf(predicted_images, ctf, indexes)/dataset.f_std
-            loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae, experiment_settings, tracking_metrics, 
+            loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae, segmenter, experiment_settings, tracking_metrics, 
                 structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=device)
 
             loss.backward()
@@ -66,7 +66,7 @@ def train(yaml_setting_path):
         if scheduler:
             scheduler.step()
 
-        model.utils.monitor_training(segmentation, tracking_metrics, experiment_settings, vae, segmenter, optimizer, predicted_images, batch_images)
+        model.utils.monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
 
 
 def cryosphere_train():
