@@ -189,7 +189,12 @@ def parse_yaml(path, analyze=False):
     encoder = MLP(Npix_downsize**2,
                   experiment_settings["latent_dimension"] * 2,
                   experiment_settings["encoder"]["hidden_dimensions"], network_type="encoder", device=device)
-    decoder = MLP(experiment_settings["latent_dimension"], experiment_settings["N_segments"]*6,
+
+    n_total_segments = 0 
+    for part, part_config in experiment_settings["segmentation_config"].items()
+        n_total_segments += part_config["N_segm"]
+
+    decoder = MLP(experiment_settings["latent_dimension"], n_total_segments*6,
                   experiment_settings["decoder"]["hidden_dimensions"], network_type="decoder", device=device)
 
 
