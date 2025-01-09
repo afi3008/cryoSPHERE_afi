@@ -102,7 +102,7 @@ class TestMovingResidues(unittest.TestCase):
 		Tests if the yaml parsing still works well
 		"""
 		try:
-			parse_yaml("test_apoferritin/parameters_package.yaml")
+			parse_yaml("parameters_package_segmentation.yaml")
 			self.assertEqual(0.0, 0.0)
 		except:
 			self.assertEqual(0.0, 1.0)
