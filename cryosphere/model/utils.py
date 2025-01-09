@@ -469,9 +469,6 @@ def compute_translations_per_residue(translation_vectors, segmentations, N_resid
     """
     translation_per_residue = torch.zeros((batch_size, N_residues, 3), dtype=torch.float32, device=device)
     for part, segm in segmentations.items():
-        print(translation_vectors[part].get_device())
-        print(segm["segmentation"].get_device())
-        print(translation_per_residue[:, segm["mask"] == 1].get_device())
         translation_per_residue[:, segm["mask"] == 1] += torch.einsum("bij, bjk -> bik", segm["segmentation"], translation_vectors[part])
 
     return translation_per_residue
@@ -492,7 +489,8 @@ def deform_structure(atom_positions, translation_per_residue, quaternions, segme
     for part, segm in segmentations.items():
         transformed_atom_positions[:, segm["mask"]==1]  = rotate_residues_einops(atom_positions[:, segm["mask"]==1] , quaternions[part], segm["segmentation"], device)
 
-
+    print(transformed_atom_positions.shape)
+    print(translation_per_residue.shape)
     new_atom_positions = transformed_atom_positions + translation_per_residue
     return new_atom_positions
 
