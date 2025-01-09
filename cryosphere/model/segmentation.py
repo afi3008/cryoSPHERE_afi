@@ -33,7 +33,7 @@ def compute_segmentation_prior(N_residues, N_segments, start_residue, device):
     return segmentation_prior
 
 
-class Segmentation():
+class Segmentation(torch.nn.Module):
 	def __init__(self, segmentation_config, residues_indexes, residues_chain, device="cpu", tau_segmentation=0.05):
 		"""
 		Creates a GMM used for segmentation purposes.
