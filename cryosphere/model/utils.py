@@ -221,14 +221,15 @@ def parse_yaml(path, analyze=False):
 
     if experiment_settings["optimizer"]["name"] == "adam":
         if "learning_rate_segmentation" not in experiment_settings["optimizer"]:
-            optimizer = torch.optim.Adam(vae.parameters(), lr=experiment_settings["optimizer"]["learning_rate"])
+            list_param = [{"params": vae.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]}]
+            list_param.append({"params": segmenter.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
+            optimizer = torch.optim.Adam(list_param)
         else:
             list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
                           segmenter.named_parameters() if "segmentation" in name]
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
-            list_param.append({"params": vae.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
-            print(list_param)
+            list_param.append({"params": vae.latent_variables_mean, "lr":experiment_settings["optimizer"]["learning_rate"]})
             optimizer = torch.optim.Adam(list_param)
     else:
         raise Exception("Optimizer must be Adam")
