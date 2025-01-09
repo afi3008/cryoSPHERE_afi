@@ -62,9 +62,16 @@ class Segmentation(torch.nn.Module):
 
 		for part, part_config in segmentation_config.items():
 			N_segments = part_config["N_segm"]
-			start_res = part_config["start_res"]
-			end_res = part_config["end_res"]
-			N_res = end_res - start_res + 1
+			if part_config.get("all_protein", False):
+				assert len(segmentation_config) == 1, "If the whole protein is segmented, only one segmentation can be defined."
+				start_res = 0
+				end_res = len(self.residues_indexes) - 1
+				N_res = len(self.residues_indexes)
+			else:
+				start_res = part_config["start_res"]
+				end_res = part_config["end_res"]
+				N_res = end_res - start_res + 1
+
 			if "segmentation_start_values" not in part_config:
 				#Initialize the segmentation in a uniform way
 				bound_0 = N_res/N_segments
@@ -106,9 +113,16 @@ class Segmentation(torch.nn.Module):
 				for part, part_config in segmentation_config.items():
 					self.segmentation_prior[part] = {}
 					N_segments = part_config["N_segm"]
-					start_res = part_config["start_res"]
-					end_res = part_config["end_res"]
-					N_res = end_res - start_res + 1
+					if part_config.get("all_protein", False):
+						assert len(segmentation_config) == 1, "If the whole protein is segmented, only one segmentation can be defined."
+						start_res = 0
+						end_res = len(self.residues_indexes) - 1
+						N_res = len(self.residues_indexes)
+					else:
+						start_res = part_config["start_res"]
+						end_res = part_config["end_res"]
+						N_res = end_res - start_res + 1
+						
 					bound_0 = N_res / N_segments
 					segmentation_means_mean = torch.tensor(np.array([start_res + bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
 					          device=device)[None, :]
