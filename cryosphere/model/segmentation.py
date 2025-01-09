@@ -139,10 +139,19 @@ class Segmentation(torch.nn.Module):
 		:return: dictionnary of torch.tensor(N_batch, N_residues, N_segments) values of the segmentation, np.array of 0 and 1, 
 				mask to get the residues to which we apply the segmentation, in the frame of the total protein, not of the chain.
 		"""
-		chain_id = part_config["chain"]
 		N_segments = part_config["N_segm"]
-		#Be careful: the start and end residues are included and the residue numbering starts at 0.
-		residues_chain = self.residues_indexes[self.residues_chain == chain_id]
+		if part_config.get("all_protein", False):
+			residues_chain = self.residues_indexes
+			mask = np.ones(self.N_residues, dtype=np.float32)
+		else:
+			chain_id = part_config["chain"]
+			#Be careful: the start and end residues are included and the residue numbering starts at 0.
+			residues_chain = self.residues_indexes[self.residues_chain == chain_id]
+			mask = np.zeros(self.N_residues, dtype=np.float32)
+			tmp_array = mask[self.residues_chain == chain_id]
+			tmp_array[[i for i in range(part_config["start_res"], part_config["end_res"]+1)]] = 1
+			mask[self.residues_chain == chain_id] = tmp_array
+
 		#In residues_chain, we have the indexes of the relevant residues in the frame of the total protein. We want to find their indexes in the frame of the chain, so we 
 		# minus the first indexes of that chain
 		residues = residues_chain[[i for i in range(part_config["start_res"], part_config["end_res"]+1)]] - torch.min(residues_chain)
@@ -159,10 +168,6 @@ class Segmentation(torch.nn.Module):
 		log_num = -0.5*(residues[None, :, :] - cluster_means[:, None, :])**2/cluster_std[:, None, :]**2 + \
 		      torch.log(proportions[:, None, :])
 
-		mask = np.zeros(self.N_residues, dtype=np.float32)
-		tmp_array = mask[self.residues_chain == chain_id]
-		tmp_array[[i for i in range(part_config["start_res"], part_config["end_res"]+1)]] = 1
-		mask[self.residues_chain == chain_id] = tmp_array
 		return {"segmentation":torch.softmax(log_num / self.tau_segmentation, dim=-1), "mask":mask}
 
 	def sample_segments(self, N_batch):
