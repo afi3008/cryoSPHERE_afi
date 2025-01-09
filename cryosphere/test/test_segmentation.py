@@ -61,14 +61,19 @@ class TestMovingResidues(unittest.TestCase):
 									"part3":{"N_segm":10, "start_res":300, "end_res":399, "chain":"C"}}
 
 		self.segmentation_config2 = {"part1":{"N_segm":6, "all_protein":True}}
-		self.segmenter = Segmentation(self.segmentation_config, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
+		self.segmenter = Segmentation(self.segmentation_config1, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
 		self.segmenter2 = Segmentation(self.segmentation_config2, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
 		self.atom_positions = torch.randn((self.batch_size, self.N_residues, 3), dtype=torch.float32, device=self.device)
 		self.translation_per_segments = {}
 		self.rotation_per_segments = {}
-		for part, part_config in self.segmentation_config.items():
-			self.translation_per_segments[part] = torch.randn((self.batch_size, self.segmentation_config[part]["N_segm"], 3), dtype=torch.float32, device=self.device)
+		for part, part_config in self.segmentation_config1.items():
+			self.translation_per_segments[part] = torch.randn((self.batch_size, self.segmentation_config1[part]["N_segm"], 3), dtype=torch.float32, device=self.device)
 			self.rotation_per_segments[part] = pytorch3d.transforms.random_quaternions(
+										part_config["N_segm"]*self.batch_size, device=self.device).reshape(self.batch_size, part_config["N_segm"], -1)
+
+		for part, part_config in self.segmentation_config2.items():
+			self.translation_per_segments2[part] = torch.randn((self.batch_size, self.segmentation_config2[part]["N_segm"], 3), dtype=torch.float32, device=self.device)
+			self.rotation_per_segments2[part] = pytorch3d.transforms.random_quaternions(
 										part_config["N_segm"]*self.batch_size, device=self.device).reshape(self.batch_size, part_config["N_segm"], -1)
 
 	def test_translations(self):
@@ -98,8 +103,8 @@ class TestMovingResidues(unittest.TestCase):
 
 		self.assertEqual(np.max(distances[:, mask==0].detach().cpu().numpy()), 0.0)
 		segmentation = self.segmenter2.sample_segments(self.batch_size)
-		translations_per_residue = compute_translations_per_residue(self.translation_per_segments, segmentation, self.N_residues, self.batch_size, self.device)
-		new_atom_positions = deform_structure(self.atom_positions, translations_per_residue, self.rotation_per_segments, segmentation, self.device)
+		translations_per_residue = compute_translations_per_residue(self.translation_per_segments2, segmentation, self.N_residues, self.batch_size, self.device)
+		new_atom_positions = deform_structure(self.atom_positions, translations_per_residue, self.rotation_per_segments2, segmentation, self.device)
 		distances = (new_atom_positions - self.atom_positions)**2
 		mask = np.zeros(self.N_residues)
 		for part, segm in segmentation.items():
