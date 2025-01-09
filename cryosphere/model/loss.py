@@ -291,7 +291,7 @@ def compute_KL_prior_segments(segmenter, segments_prior, variable, epsilon_kl):
     """
     all_kl_losses = 0
     assert variable in ["means", "stds", "proportions"]
-    for part in segmenter.segments_means_stds
+    for part in segmenter.segments_means_stds:
         if variable == "means":
             segments_stds = segmenter.segments_means_stds[part]
             segments_means = segmenter.segments_means_means[part]
