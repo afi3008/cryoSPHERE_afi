@@ -215,7 +215,7 @@ def parse_yaml(path, analyze=False):
     residues_chain = base_structure.chain_id
     residues_indexes = np.array([i for i in range(len(residues_chain))])
 
-    segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"])
+    segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"], device=device)
     experiment_settings["segmentation_prior"] = segmenter.segmentation_prior 
   
 
