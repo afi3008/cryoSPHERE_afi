@@ -3,13 +3,12 @@ import numpy as np
 
 
 class VAE(torch.nn.Module):
-    def __init__(self, encoder, decoder, device, latent_dim = None, amortized=True, N_images=None):
+    def __init__(self, encoder, decoder, device, segmentation_config, latent_dim = None, amortized=True, N_images=None):
         """
         VAE class. This defines all the parameters needed and perform the reparametrization trick.
         :param encoder: object of type MLP, with type "encoder"
         :param decoder: object of type MLP, with type "decoder"
         :param device: torch device on which we want to perform the computations.
-        :param segmentation_start_values: "uniform" for starting uniformly, otherwise dictionnary containing the mean, std for each of the GMM segmentation parameters (mean, std, proportion)
         :param N_segments: dictionnary, of number of segments per part of the protein we want to segment.
         :param latent_dim: integer, latent dimension
         :param amortized: bool, whether to perform amortized inference or not
@@ -22,6 +21,10 @@ class VAE(torch.nn.Module):
         self.latent_dim = latent_dim
         self.N_images = N_images
         self.amortized = amortized
+        self.segmentation_config = segmentation_config
+        self.N_total_segments = 0
+        for part, part_config in self.segmentation_config.items():
+            self.N_total_segments += part_config["N_segm"]
 
         if not amortized:
             assert N_images, "If using a non amortized version of the code, the number of images must be specified"
@@ -60,7 +63,7 @@ class VAE(torch.nn.Module):
         """
         N_batch = latent_variables.shape[0]
         transformations = self.decoder(latent_variables)
-        transformations_per_segments = torch.reshape(transformations, (N_batch, self.N_segments, 6))
+        transformations_per_segments = torch.reshape(transformations, (N_batch, self.N_total_segments, 6))
         ones = torch.ones(size=(N_batch, transformations_per_segments.shape[1], 1), device=self.device)
         quaternions_per_segments_all_parts = torch.concat([ones, transformations_per_segments[:, :, 3:]], dim=-1)
         translations_per_segments_all_parts = transformations_per_segments[:, :, :3]

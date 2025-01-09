@@ -198,7 +198,7 @@ def parse_yaml(path, analyze=False):
                   experiment_settings["decoder"]["hidden_dimensions"], network_type="decoder", device=device)
 
 
-    vae = VAE(encoder, decoder, device, latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
+    vae = VAE(encoder, decoder, device, experiment_settings["segmentation_config"], latent_dim=experiment_settings["latent_dimension"], N_images = N_images, amortized=amortized)
     vae.to(device)
     if experiment_settings["resume_training"]["model"]:
         vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
@@ -231,7 +231,7 @@ def parse_yaml(path, analyze=False):
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             if not amortized:
                 list_param.append({"params": vae.latent_variables_mean, "lr":experiment_settings["optimizer"]["learning_rate"]})
-                
+
             optimizer = torch.optim.Adam(list_param)
     else:
         raise Exception("Optimizer must be Adam")
