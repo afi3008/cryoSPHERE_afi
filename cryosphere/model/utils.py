@@ -487,13 +487,8 @@ def deform_structure(atom_positions, translation_per_residue, quaternions, segme
     batch_size = translation_per_residue.shape[0]
     transformed_atom_positions = atom_positions
     for part, segm in segmentations.items():
-        print(atom_positions.shape)
-        print(quaternions[part].shape)
-        print(segm["segmentation"].shape)
-        transformed_atom_positions[:, segm["mask"]==1]  = rotate_residues_einops(atom_positions[:, segm["mask"]==1] , quaternions[part], segm["segmentation"], device)
+        transformed_atom_positions[segm["mask"]==1]  = rotate_residues_einops(atom_positions[:, segm["mask"]==1] , quaternions[part], segm["segmentation"], device)
 
-    print(transformed_atom_positions.shape)
-    print(translation_per_residue.shape)
     new_atom_positions = transformed_atom_positions + translation_per_residue
     return new_atom_positions
 
