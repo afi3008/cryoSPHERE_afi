@@ -66,7 +66,7 @@ def train(yaml_setting_path):
         if scheduler:
             scheduler.step()
 
-        model.utils.monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
+        model.utils.monitor_training(segmentation, tracking_metrics, experiment_settings, vae, segmenter, optimizer, predicted_images, batch_images)
 
 
 def cryosphere_train():
