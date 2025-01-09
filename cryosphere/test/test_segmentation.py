@@ -103,9 +103,11 @@ class TestMovingResidues(unittest.TestCase):
 		"""
 		try:
 			parse_yaml("test_apoferritin/parameters_package_segmentation.yaml")
+			parse_yaml("test_apoferritin/parameters_package_segmentation_full_protein.yaml")
 			self.assertEqual(0.0, 0.0)
 		except:
 			self.assertEqual(0.0, 1.0)
+
 
 
 
