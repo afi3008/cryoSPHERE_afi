@@ -228,6 +228,7 @@ def parse_yaml(path, analyze=False):
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
+            print(list_param)
             optimizer = torch.optim.Adam(list_param)
     else:
         raise Exception("Optimizer must be Adam")
