@@ -45,6 +45,7 @@ class Segmentation(torch.nn.Module):
 		:param device: torch device to use.
 		:param tau_segmentation: float, used to anneal the probabilities of the GMM
 		"""
+		super(Segmentation, self).__init__()
 		self.segmentation_config = segmentation_config
 		self.segments_means_means = torch.nn.ParameterDict({})
 		self.segments_means_stds = torch.nn.ParameterDict({})
