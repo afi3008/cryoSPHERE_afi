@@ -66,6 +66,8 @@ class TestMovingResidues(unittest.TestCase):
 		self.atom_positions = torch.randn((self.batch_size, self.N_residues, 3), dtype=torch.float32, device=self.device)
 		self.translation_per_segments = {}
 		self.rotation_per_segments = {}
+		self.translation_per_segments2 = {}
+		self.rotation_per_segments2 = {}
 		for part, part_config in self.segmentation_config1.items():
 			self.translation_per_segments[part] = torch.randn((self.batch_size, self.segmentation_config1[part]["N_segm"], 3), dtype=torch.float32, device=self.device)
 			self.rotation_per_segments[part] = pytorch3d.transforms.random_quaternions(
