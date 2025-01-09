@@ -57,9 +57,12 @@ class TestMovingResidues(unittest.TestCase):
 		self.N_residues = 1000
 		self.residues_chain = np.array(["A" for _ in range(100)] + ["B" for _ in range(500)] + ["C" for _ in range(400)])
 		self.residues_indexes = np.array([i for i in range(1000)])
-		self.segmentation_config = {"part1":{"N_segm":6, "start_res":0, "end_res":80, "chain":"A"}, "part2":{"N_segm":15, "start_res":300, "end_res":499, "chain":"B"},
+		self.segmentation_config1 = {"part1":{"N_segm":6, "start_res":0, "end_res":80, "chain":"A"}, "part2":{"N_segm":15, "start_res":300, "end_res":499, "chain":"B"},
 									"part3":{"N_segm":10, "start_res":300, "end_res":399, "chain":"C"}}
+
+		self.segmentation_config2 = {"part1":{"N_segm":6, "all_protein":True}}
 		self.segmenter = Segmentation(self.segmentation_config, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
+		self.segmenter2 = Segmentation(self.segmentation_config2, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
 		self.atom_positions = torch.randn((self.batch_size, self.N_residues, 3), dtype=torch.float32, device=self.device)
 		self.translation_per_segments = {}
 		self.rotation_per_segments = {}
@@ -86,6 +89,15 @@ class TestMovingResidues(unittest.TestCase):
 		Testing that we rotate the right residues
 		"""
 		segmentation = self.segmenter.sample_segments(self.batch_size)
+		translations_per_residue = compute_translations_per_residue(self.translation_per_segments, segmentation, self.N_residues, self.batch_size, self.device)
+		new_atom_positions = deform_structure(self.atom_positions, translations_per_residue, self.rotation_per_segments, segmentation, self.device)
+		distances = (new_atom_positions - self.atom_positions)**2
+		mask = np.zeros(self.N_residues)
+		for part, segm in segmentation.items():
+			mask += segm["mask"]
+
+		self.assertEqual(np.max(distances[:, mask==0].detach().cpu().numpy()), 0.0)
+		segmentation = self.segmenter2.sample_segments(self.batch_size)
 		translations_per_residue = compute_translations_per_residue(self.translation_per_segments, segmentation, self.N_residues, self.batch_size, self.device)
 		new_atom_positions = deform_structure(self.atom_positions, translations_per_residue, self.rotation_per_segments, segmentation, self.device)
 		distances = (new_atom_positions - self.atom_positions)**2

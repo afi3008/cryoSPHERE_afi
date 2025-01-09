@@ -122,7 +122,7 @@ class Segmentation(torch.nn.Module):
 						start_res = part_config["start_res"]
 						end_res = part_config["end_res"]
 						N_res = end_res - start_res + 1
-						
+
 					bound_0 = N_res / N_segments
 					segmentation_means_mean = torch.tensor(np.array([start_res + bound_0 / 2 + i * bound_0 for i in range(N_segments)]), dtype=torch.float32,
 					          device=device)[None, :]
@@ -157,6 +157,8 @@ class Segmentation(torch.nn.Module):
 		if part_config.get("all_protein", False):
 			residues_chain = self.residues_indexes
 			mask = np.ones(self.N_residues, dtype=np.float32)
+			start_res = 0
+			end_res = len(residues_chain) - 1
 		else:
 			chain_id = part_config["chain"]
 			#Be careful: the start and end residues are included and the residue numbering starts at 0.
@@ -165,10 +167,12 @@ class Segmentation(torch.nn.Module):
 			tmp_array = mask[self.residues_chain == chain_id]
 			tmp_array[[i for i in range(part_config["start_res"], part_config["end_res"]+1)]] = 1
 			mask[self.residues_chain == chain_id] = tmp_array
+			start_res = part_config["start_res"]
+			end_res = part_config["end_res"]
 
 		#In residues_chain, we have the indexes of the relevant residues in the frame of the total protein. We want to find their indexes in the frame of the chain, so we 
 		# minus the first indexes of that chain
-		residues = residues_chain[[i for i in range(part_config["start_res"], part_config["end_res"]+1)]] - torch.min(residues_chain)
+		residues = residues_chain[[i for i in range(start_res, end_res+1)]] - torch.min(residues_chain)
 		#We sample the proportions of the GMM
 		cluster_proportions = torch.randn((N_batch, N_segments),
 		                                  device=self.device) * self.segments_proportions_stds[part] + self.segments_proportions_means[part] 
