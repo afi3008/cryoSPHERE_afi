@@ -67,7 +67,7 @@ class VAE(torch.nn.Module):
         ones = torch.ones(size=(N_batch, transformations_per_segments.shape[1], 1), device=self.device)
         quaternions_per_segments_all_parts = torch.concat([ones, transformations_per_segments[:, :, 3:]], dim=-1)
         translations_per_segments_all_parts = transformations_per_segments[:, :, :3]
-        translation_per_segments = {}
+        translations_per_segments = {}
         quaternions_per_segments = {}
         start = 0
         for part, part_config in self.segmentation_config.items():
