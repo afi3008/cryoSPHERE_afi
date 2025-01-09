@@ -469,6 +469,9 @@ def compute_translations_per_residue(translation_vectors, segmentations, N_resid
     """
     translation_per_residue = torch.zeros((batch_size, N_residues, 3), dtype=torch.float32, device=device)
     for part, segm in segmentations.items():
+        print(translation_vectors[part].get_device())
+        print(segm["segmentation"].get_device())
+        print(translation_per_residue[:, segm["mask"] == 1].get_device())
         translation_per_residue[:, segm["mask"] == 1] += torch.einsum("bij, bjk -> bik", segm["segmentation"], translation_vectors[part])
 
     return translation_per_residue
