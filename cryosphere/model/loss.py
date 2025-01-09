@@ -282,17 +282,30 @@ def compute_KL_prior_latent(latent_mean, latent_std, epsilon_loss):
                                            - latent_std ** 2, dim=1))
 
 
-def compute_KL_prior_segments(segments_parameters, segments_prior, variable, epsilon_kl):
+def compute_KL_prior_segments(segmenter, segments_prior, variable, epsilon_kl):
     """
     Compute the KL divergence loss between the prior and the approximated posterior distribution for the segmentation.
-    :param segments_parameters: dictionnary, containing the tensor of segmentation parameters
+    :param segmenter: object of class Segmentation.
     :param segments_prior: dictionnary, containing the tensor of segmentation prior
     :return: torch.float32, KL divergence loss
     """
+    all_kl_losses = 0
     assert variable in ["means", "stds", "proportions"]
-    return torch.sum(-1/2 + torch.log(segments_prior[variable]["std"]/segments_parameters[variable]["std"] + eval(epsilon_kl)) \
-    + (1/2)*(segments_parameters[variable]["std"]**2 +
-    (segments_prior[variable]["mean"] - segments_parameters[variable]["mean"])**2)/segments_prior[variable]["std"]**2)
+    for part in segmenter.segments_means_stds
+        if variable == "means":
+            segments_stds = segmenter.segments_means_stds[part]
+            segments_means = segmenter.segments_means_means[part]
+        elif variable == "stds":
+            segments_stds = segmenter.segments_stds_stds[part]
+            segments_means = segmenter.segments_stds_means[part]
+        else:
+            segments_stds = segmenter.segments_proportions_stds[part]
+            segments_means = segmenter.segments_proportions_means[part]           
+
+        all_kl_losses += torch.sum(-1/2 + torch.log(segments_prior[part][variable]["std"]/segments_stds + eval(epsilon_kl)) \
+                    + (1/2)*(segments_stds**2 + (segments_prior[part][variable]["mean"] - segments_means)**2)/segments_prior[part][variable]["std"]**2)
+
+    return all_kl_losses
 
 
 
@@ -328,7 +341,7 @@ def compute_clashing_distances(new_structures, device, cutoff=4):
     return torch.mean(average_clahing)
 
 
-def compute_loss(predicted_images, images, segmentation_image, latent_mean, latent_std, vae, experiment_settings, tracking_dict, structural_loss_parameters,
+def compute_loss(predicted_images, images, segmentation_image, latent_mean, latent_std, vae, segmenter, experiment_settings, tracking_dict, structural_loss_parameters,
                  epoch, predicted_structures = None, device=None):
     """
     Compute the entire loss
@@ -336,7 +349,8 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     :param images: torch.tensor(batch_size, N_pix), true images
     :param latent_mean:torch.tensor(batch_size, latent_dim), mean of the approximate latent distribution
     :param latent_std:torch.tensor(batch_size, latent_dim), std of the approximate latent distribution
-    :param vae: vae object of the class VAE. We are training this network.
+    :param segmenter: object of the class VAE.
+    :param segmenter: object of the class Segmentation.
     :param experiment_settings: dictionnary with the settings of the current experiment
     :param tracking_dict: dictionnary containing the different metrics we want to track
     :param structural_loss_parameters: dictionnary containing all that is required to compute the structural loss, such as the pairs for clashing loss, continuity loss and
@@ -348,7 +362,7 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     rmsd = calc_cor_loss(predicted_images, images, segmentation_image)
     KL_prior_latent = compute_KL_prior_latent(latent_mean, latent_std, experiment_settings["epsilon_kl"])
     KL_prior_segmentation_means = compute_KL_prior_segments(
-        vae.segmentation_parameters, experiment_settings["segmentation_prior"],
+        segmenter, experiment_settings["segmentation_prior"],
         "means", epsilon_kl=experiment_settings["epsilon_kl"])
 
     continuity_loss = calc_pair_dist_loss(predicted_structures, structural_loss_parameters["connect_pairs"], 
@@ -359,9 +373,9 @@ def compute_loss(predicted_images, images, segmentation_image, latent_mean, late
     else:
         clashing_loss =  calc_clash_loss(predicted_structures, structural_loss_parameters["clash_pairs"], clash_cutoff=experiment_settings["loss"]["clashing_loss"]["clashing_cutoff"])
 
-    KL_prior_segmentation_stds = compute_KL_prior_segments(vae.segmentation_parameters, experiment_settings["segmentation_prior"],
+    KL_prior_segmentation_stds = compute_KL_prior_segments(segmenter, experiment_settings["segmentation_prior"],
                                                "stds", epsilon_kl=experiment_settings["epsilon_kl"])
-    KL_prior_segmentation_proportions = compute_KL_prior_segments(vae.segmentation_parameters, experiment_settings["segmentation_prior"],
+    KL_prior_segmentation_proportions = compute_KL_prior_segments(segmenter, experiment_settings["segmentation_prior"],
                                                "proportions", epsilon_kl=experiment_settings["epsilon_kl"])
     l2_pen = compute_l2_pen(vae)
 
