@@ -216,11 +216,8 @@ def parse_yaml(path, analyze=False):
     residues_indexes = np.array([i for i in range(len(residues_chain))])
 
     segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"])
-
-    assert experiment_settings["segmentation_prior"]["type"] == "uniform", "Currently, only uniform prior over the segmentation is accepted"
-    if experiment_settings["segmentation_prior"]["type"] == "uniform":
-        experiment_settings["segmentation_prior"] = compute_segmentation_prior(experiment_settings["N_residues"],
-                                                               experiment_settings["N_segments"], device)   
+    experiment_settings["segmentation_prior"] = segmenter.segmentation_prior 
+  
 
     if experiment_settings["optimizer"]["name"] == "adam":
         if "learning_rate_segmentation" not in experiment_settings["optimizer"]:
