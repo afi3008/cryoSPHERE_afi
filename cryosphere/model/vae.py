@@ -71,10 +71,9 @@ class VAE(torch.nn.Module):
         quaternions_per_segments = {}
         start = 0
         for part, part_config in self.segmentation_config.items():
-            print(part)
             n_segments = part_config["N_segm"]
-            translations_per_segments[part] = translations_per_segments[:, start:start+n_segments, :]
-            quaternions_per_segments[part] = quaternions_per_segments_all_parts[:, start:start+n_segments]
+            translations_per_segments[part] = translations_per_segments[:, start:(start+n_segments), :]
+            quaternions_per_segments[part] = quaternions_per_segments_all_parts[:, start:(start+n_segments)]
             start += n_segments
 
         return quaternions_per_segments, translations_per_segments
