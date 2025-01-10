@@ -226,7 +226,7 @@ def parse_yaml(path, analyze=False):
             optimizer = torch.optim.Adam(list_param)
         else:
             list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
-                          segmenter.named_parameters() if "segmentation" in name]
+                          segmenter.named_parameters() if "segments" in name]
             list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
             if not amortized:
