@@ -60,6 +60,10 @@ def train(yaml_setting_path):
                 structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=device)
 
             print(segmenter.segments_means_means["part1"])
+            print("NAMED PARAMETERS IN SEGMENTER")
+            for l, s in segmenter.named_parameters():
+                print(l,s)
+                
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
