@@ -1,18 +1,19 @@
 import sys
 import os
+sys.path.insert(1, '../model')
 import torch
+import utils
 import argparse
 import starfile
 import numpy as np
 import seaborn as sns
 from time import time
 from tqdm import tqdm
+from polymer import Polymer
 import matplotlib.pyplot as plt
-from cryosphere.model import utils
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
 from scipy.spatial.distance import cdist
-from cryosphere.model.polymer import Polymer
 
 
 parser_arg = argparse.ArgumentParser()

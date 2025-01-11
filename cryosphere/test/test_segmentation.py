@@ -4,8 +4,6 @@ import torch
 import unittest
 import pytorch3d
 import numpy as np
-path = os.path.abspath("model")
-sys.path.append(path)
 sys.path.insert(1, '../model')
 from segmentation import Segmentation
 from utils import compute_translations_per_residue, deform_structure, parse_yaml
