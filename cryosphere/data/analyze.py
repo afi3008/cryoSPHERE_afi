@@ -1,7 +1,7 @@
 import sys
 import os
-path = os.path.abspath("model")
-sys.path.append(path)
+#path = os.path.abspath("model")
+#sys.path.append(path)
 sys.path.insert(1, '../model')
 import torch
 from model import utils
