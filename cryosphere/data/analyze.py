@@ -4,7 +4,7 @@ import os
 #sys.path.append(path)
 sys.path.insert(1, '../model')
 import torch
-from model import utils
+import utils
 import argparse
 import starfile
 import numpy as np
