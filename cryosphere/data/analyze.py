@@ -4,7 +4,7 @@ path = os.path.abspath("model")
 sys.path.append(path)
 sys.path.insert(1, '../model')
 import torch
-import utils
+from model import utils
 import argparse
 import starfile
 import numpy as np
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
 from scipy.spatial.distance import cdist
-from polymer import Polymer
+from model.polymer import Polymer
 
 
 parser_arg = argparse.ArgumentParser()
