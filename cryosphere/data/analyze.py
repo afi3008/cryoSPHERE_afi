@@ -123,20 +123,21 @@ def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
     plt.savefig(os.path.join(output_path, f"pc{dim}/pca.png"))
     plt.close()
 
-def predict_structures(vae, z_dim, gmm_repr, device):
+def predict_structures(vae, z_dim, gmm_repr, segmenter, device):
     """
     Function predicting the structures for a PC traversal along a specific PC.
     :param vae: object of class VAE.
     :param z_dim: np.array(num_points, latent_dim) coordinates of the sampled structures for the PC traversal
     :param gmm_repr: Gaussian representation. Object of class Gaussian.
     :param predicted_structures: torch.tensor(num_points, N_residues, 3), predicted structutres for each one of the sampled points of the PC traversal.
+    :param segmenter: object of class Segmentation
+    :param device: torch device
     """
     z_dim = torch.tensor(z_dim, dtype=torch.float32, device=device)
-    segmentation = vae.sample_segmentation(z_dim.shape[0])
+    segmentation = segmenter.sample_segments(z_dim.shape[0])
     quaternions_per_domain, translations_per_domain = vae.decode(z_dim)
-    translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, segmentation)
+    translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, segmentation, gmm_repr.mus.shape[0],z_dim.shape[0], device)
     predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, device)
-
     return predicted_structures
 
 
@@ -175,7 +176,7 @@ def save_structures(predicted_structures, base_structure, batch_num, output_path
         base_structure.coord = pred_struct.detach().cpu().numpy()
         base_structure.to_pdb(os.path.join(output_path, f"structure_z_{batch_num*batch_size + i}.pdb"))
 
-def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, device):
+def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device):
     """
     Runs a PCA analysis of the latent space and return PC traversals and plots of the PCA of the latent space
     :param vae: object of class VAE.
@@ -184,6 +185,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
     :param num_points: integer, number of points to sample along a PC for the PC traversals
     :param output_path: str, path to the directory where we want to save the PCA resuls
     :param gmm_repr: object of class Gaussian.
+    :param segmenter: object of class segmenter.
     :param device: torch device on which we perform the computations
     """
     if z.shape[-1] > 1:
@@ -191,7 +193,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
         sns.set_style("white")
         for dim in dimensions:
             plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca)
-            predicted_structures = predict_structures(vae, all_trajectories[dim], gmm_repr, device)
+            predicted_structures = predict_structures(vae, all_trajectories[dim], gmm_repr, segmenter, device)
             save_structures_pca(predicted_structures, dim, output_path, base_structure)
 
     else:
@@ -211,7 +213,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     :return:
     """
     (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
-    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters)  = utils.parse_yaml(yaml_setting_path, analyze=True)
+    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, analyze=True)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
     if not os.path.exists(output_path):
@@ -221,7 +223,7 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
-            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, device=device)
+            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device=device)
 
     else:
         path_structures = os.path.join(output_path, "predicted_structures")
