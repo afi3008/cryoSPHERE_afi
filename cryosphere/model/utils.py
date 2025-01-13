@@ -151,7 +151,7 @@ def parse_yaml(path, analyze=False):
 
     folder_path = experiment_settings["folder_path"]
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
-    path_results = os.path.join(folder_path, "cryoSPHERE")
+    path_results = os.path.join(folder_path, "cryoSPHERE2")
     if not os.path.exists(path_results):
         os.makedirs(path_results)
 
