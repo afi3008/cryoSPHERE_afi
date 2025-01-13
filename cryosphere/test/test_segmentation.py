@@ -8,6 +8,25 @@ sys.path.insert(1, '../model')
 from segmentation import Segmentation
 from utils import compute_translations_per_residue, deform_structure, parse_yaml
 
+def sample_segmentation(self, N_batch, N_segments, segmentation_proportions_std, segmentation_proportions_mean, segmentation_means_std, segmentation_means_mean,
+						segmentation_std_std, segmentation_std_mean, residues, tau_segmentation, device):
+    """
+    Samples a segmantion
+    :param N_batch: integer: size of the batch.
+    :return: torch.tensor(N_batch, N_residues, N_segments) values of the segmentation
+    """
+    elu = torch.nn.ELU()
+    N_segments = part_config["N_segm"]
+    cluster_proportions = torch.randn((N_batch, N_segments),
+                                      device=device) * segmentation_proportions_std+ segmentation_proportions_mean
+    cluster_means = torch.randn((N_batch, N_segments), device=device) * segmentation_means_std+ segmentation_means_mean
+    cluster_std = elu(torch.randn((N_batch, N_segments), device=device)*segmentation_std_std + segmentation_std_mean) + 1
+    proportions = torch.softmax(cluster_proportions, dim=-1)
+    log_num = -0.5*(residues[None, :, :] - cluster_means[:, None, :])**2/cluster_std[:, None, :]**2 + \
+          torch.log(proportions[:, None, :])
+
+    segmentation = torch.softmax(log_num / tau_segmentation, dim=-1)
+    return segmentation
 
 
 class TestSegmentation(unittest.TestCase):
@@ -20,7 +39,9 @@ class TestSegmentation(unittest.TestCase):
 		self.residues_indexes = np.array([i for i in range(1000)])
 		self.segmentation_config = {"part1":{"N_segm":6, "start_res":0, "end_res":80, "chain":"A"}, "part2":{"N_segm":15, "start_res":300, "end_res":499, "chain":"B"},
 									"part3":{"N_segm":10, "start_res":300, "end_res":399, "chain":"C"}}
+		self.segmentation_config2 = {"part1":{"N_segm":6, "all_protein":True}}
 		self.segmenter = Segmentation(self.segmentation_config, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
+		self.segmenter2 = Segmentation(self.segmentation_config2, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
 
 
 	def test_segmentation(self):
@@ -41,6 +62,18 @@ class TestSegmentation(unittest.TestCase):
 			self.assertEqual(np.sum(segm_mask), segm["end_res"] - segm["start_res"]+1)
 			self.assertEqual(np.sum(segm_mask[total_start+ segm["start_res"]:total_start+segm["end_res"]+1] == 0), 0)
 			total_start += np.sum(self.residues_chain == segm["chain"])
+
+	def test_compare_old_new_segmentation(self):
+		torch.manual_seed(0)
+		segmentation1 = self.segmenter.sample_segments(batch_size)
+		torch.manual_seed(0)
+		segmentation2 = sample_segmentation(batch_size, self.segmentation_config1["part1"]["N_segm"], self.segmenter.segments_proportions_stds["part1"], self.segmenter.segments_proportions_means["part1"],
+		   self.segmenter.segments_means_stds["part1"], self.segmenter.segments_means_means["part1"], self.segmenter.segments_stds_stds["part1"], self.segmenter.segments_means_stds["part1"],
+		   self.residues_indexes, 0.05, device="cpu")
+
+
+		self.assertEqual(0.0, 0.0)
+
 
 
 
