@@ -19,6 +19,7 @@ from scipy.spatial.distance import cdist
 parser_arg = argparse.ArgumentParser()
 parser_arg.add_argument('--experiment_yaml', type=str, required=True, help="path to the yaml defining the experimentation")
 parser_arg.add_argument("--model", type=str, required=True, help="path to the model we want to analyze")
+parser_arg.add_argument("--segmenter", type=str, required=True, help="path to the segmenter we want to analyze")
 parser_arg.add_argument("--output_path", type=str, required=True, help="path of the directory to save the results")
 parser_arg.add_argument("--z", type=str, required=False, help="path of the latent variables in npy format, if we already have them")
 parser_arg.add_argument("--thinning", type=int, required=False, default= 1,  help="""thinning to apply on the latent variables to perform the PCA analysis: if there are too many images,
@@ -203,11 +204,12 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
-def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimensions=[0, 1, 2], num_points=10, generate_structures=False):
+def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinning=1, dimensions=[0, 1, 2], num_points=10, generate_structures=False):
     """
     train a VAE network
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment.
     :param model_path: str, path to the model we want to analyze.
+    :param segmenter_path: str, path to the segmenter used for the analysis.
     :param structures_path: 
     :return:
     """
@@ -215,6 +217,8 @@ def analyze(yaml_setting_path, model_path, output_path, z, thinning=1, dimension
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, analyze=True)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
+    segmenter.load_state_dict(torch.load(segmenter_path))
+    segmenter.eval()
     if not os.path.exists(output_path):
             os.makedirs(output_path)
 
@@ -244,12 +248,13 @@ def analyze_run():
     num_points = args.num_points
     path = args.experiment_yaml
     dimensions = args.dimensions
+    segmenter_path = args.segmenter
     z = None
     if args.z is not None:
         z = np.load(args.z)
         
     generate_structures = args.generate_structures
-    analyze(path, model_path, output_path, z, dimensions=dimensions, generate_structures=generate_structures, thinning=thinning, num_points=num_points)
+    analyze(path, model_path, segmenter_path, output_path, z, dimensions=dimensions, generate_structures=generate_structures, thinning=thinning, num_points=num_points)
 
 
 if __name__ == '__main__':
