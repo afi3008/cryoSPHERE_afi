@@ -352,10 +352,11 @@ class SpatialGridTranslate(torch.nn.Module):
         return sampled[:, 0, :, :]
 
 
-def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, optimizer, pred_im, true_im):
+def monitor_training(segmentation, segmenter, tracking_metrics, experiment_settings, vae, optimizer, pred_im, true_im):
     """
     Monitors the training process through wandb and saving models. The metrics are logged into a file and optionnally sent to Weight and Biases.
     :param segmentation: torch.tensor(N_batch, N_residues, N_segments) weights of the segmentation
+    :param segmenter: object of class Segmentation.
     :param tracking_metrics: dictionnary containing metrics to plot.
     :param experiment_settings: dictionnary containing parameters of the current experiment
     :param vae: object of class VAE.
@@ -385,7 +386,9 @@ def monitor_training(segmentation, tracking_metrics, experiment_settings, vae, o
             wandb.log({f"betas/{loss_term}": beta})
 
     model_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "ckpt" + str(tracking_metrics["epoch"]) + ".pt" )
+    segmenter_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "seg" + str(tracking_metrics["epoch"]) + ".pt" )
     torch.save(vae.state_dict(), model_path)
+    torch.save(segmenter.state_dict(), segmenter_path)
     information_strings = [f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
         || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"][0]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"][0]} ||
         l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}"""]
