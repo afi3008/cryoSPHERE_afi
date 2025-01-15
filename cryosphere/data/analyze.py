@@ -1,7 +1,10 @@
 import sys
 import os
 sys.path.insert(1, '../model')
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 import torch
+from cryosphere.model import utils
 import utils
 import argparse
 import starfile

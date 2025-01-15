@@ -96,21 +96,29 @@ class Segmentation(torch.nn.Module):
 				    requires_grad=True)
 
 			else:
-				for type_value in ["means", "stds", "proportions"]:
-					#Otherwise take the definitions of the segments
-					self.segments_means_means[part] = torch.nn.parameters(data = torch.tensor(np.array(part["segmentation_start_values"][f"{type_value}_means"]), 
-														dtype=torch.float32, device=device), requires_grad=True)
+				#Otherwise take the definitions of the segments
+				self.segments_means_means[part] = torch.nn.Parameter(data = torch.tensor(np.array(part_config["segmentation_start_values"]["means_means"]), 
+													dtype=torch.float32, device=device), requires_grad=True)
 
-					self.segments_means_stds[part] = part["segmentation_start_values"]["means_stds"]
-					self.segments_stds_means[part] = part["segmentation_start_values"]["stds_means"]
-					self.segments_stds_stds[part] = part["segmentation_start_values"]["stds_stds"]
-					self.segments_proportions_means[part] = part["segmentation_start_values"]["proportions_means"]
-					self.segments_proportions_stds[part] = part["segmentation_start_values"]["proportions_stds"]
+				self.segments_means_stds[part] = torch.nn.Parameter(data = torch.tensor(np.array(part_config["segmentation_start_values"]["means_stds"]), 
+													dtype=torch.float32, device=device), requires_grad=True)
+
+				self.segments_stds_means[part] = torch.nn.Parameter(data = torch.tensor(np.array(part_config["segmentation_start_values"]["stds_means"]), 
+													dtype=torch.float32, device=device), requires_grad=True)
+
+				self.segments_stds_stds[part] = torch.nn.Parameter(data = torch.tensor(np.array(part_config["segmentation_start_values"]["stds_stds"]), 
+													dtype=torch.float32, device=device), requires_grad=True)
+
+				self.segments_proportions_means[part] = torch.nn.Parameter(data = torch.tensor(np.array(part_config["segmentation_start_values"]["proportions_means"]), 
+													dtype=torch.float32, device=device), requires_grad=True)
+
+				self.segments_proportions_stds[part] = torch.nn.Parameter(data = torch.tensor(np.array(part_config["segmentation_start_values"]["proportions_stds"]), 
+													dtype=torch.float32, device=device), requires_grad=True)
 
 			self.segmentation_prior = {}
-			if "segmentation_prior" not in part_config:
-			#Create a prior with values taken uniformly
-				for part, part_config in segmentation_config.items():
+			for part, part_config in segmentation_config.items():
+				if "segmentation_prior" not in part_config:
+				#Create a prior with values taken uniformly
 					self.segmentation_prior[part] = {}
 					N_segments = part_config["N_segm"]
 					if part_config.get("all_protein", False):
@@ -135,9 +143,9 @@ class Segmentation(torch.nn.Module):
 					self.segmentation_prior[part]["stds"] = {"mean":segmentation_stds_mean, "std":segmentation_stds_std}
 					self.segmentation_prior[part]["proportions"] = {"mean":segmentation_proportions_mean, "std":segmentation_proportions_std}
 
-			else:
-				# Otherwise just take the prior values input by the user.
-				for part, part_config in segmentation_config.items():
+				else:
+					# Otherwise just take the prior values input by the user.
+					self.segmentation_prior[part] = {}
 					for type_value in ["means", "stds", "proportions"]:
 						self.segmentation_prior[part][type_value] = {"mean":part_config["segmentation_prior"][f"{type_value}_means"], 
 						"std":part_config["segmentation_prior"][f"{type_value}_stds"]}

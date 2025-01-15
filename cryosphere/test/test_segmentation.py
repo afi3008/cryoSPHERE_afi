@@ -92,6 +92,16 @@ class TestSegmentation(unittest.TestCase):
 		self.segmenter2 = Segmentation(self.segmentation_config2, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)
 		self.batch_size = 10
 
+		self.segmentation_config_non_uniform = {"part1":{"N_segm":6, "start_res":0, "end_res":80, "chain":"A", "segmentation_start_values":
+												{"means_stds":[10, 10, 10, 10, 10, 10], "means_means":[10, 150, 500, 600, 800, 900], "stds_means":[10, 10, 10, 10, 10, 10], 
+												"stds_stds": [10, 10, 10, 10, 10, 10], "proportions_means":[0, 0, 0, 0, 0, 0], "proportions_stds":[1, 1, 1, 1, 1, 1]}, 
+												"segmentation_prior":{"means_stds":[10, 10, 10, 10, 10, 10], "means_means":[10, 150, 500, 600, 800, 900], "stds_means":[10, 10, 10, 10, 10, 10], 
+												"stds_stds": [10, 10, 10, 10, 10, 10], "proportions_means":[0, 0, 0, 0, 0, 0], "proportions_stds":[1, 1, 1, 1, 1, 1]},
+													}, "part2":{"N_segm":15, "start_res":300, "end_res":499, "chain":"B"},
+									"part3":{"N_segm":10, "start_res":300, "end_res":399, "chain":"C"}}
+
+		self.segmenter_non_uniform = Segmentation(self.segmentation_config_non_uniform, self.residues_indexes, self.residues_chain, tau_segmentation=0.05)					
+
 
 	def test_segmentation(self):
 		"""
@@ -122,6 +132,13 @@ class TestSegmentation(unittest.TestCase):
 
 		max_error = np.max(torch.abs(segmentation1["part1"]["segmentation"] - segmentation2).detach().cpu().numpy())
 		self.assertAlmostEqual(max_error, 0.0, 4)
+
+
+	def test_non_uniform_init_segmentation(self):
+		for type1 in ["means", "stds", "proportions"]:
+			for type2 in ["means", "stds"]:
+				print(f"{type1}_{type2}")
+				print(list(self.segmenter_non_uniform.__getattr__(f"segments_{type1}_{type2}")["part1"]))
 
 
 
