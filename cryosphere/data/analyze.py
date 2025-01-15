@@ -1,8 +1,7 @@
 import sys
 import os
-sys.path.insert(1, '../model')
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
+from os.path import dirname, join, abspath
+sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 import torch
 from cryosphere.model import utils
 import utils
