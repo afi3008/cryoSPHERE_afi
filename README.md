@@ -4,7 +4,7 @@ CryoSPHERE is a structural heterogeneous reconstruction software of cryoEM data.
 CryoSPHERE works with two yaml files: one `parameters.yaml` describing the hyperparameters used to train cryoSPHERE and a `image.yaml` file, describing the images in the dataset. You can find a commented example of these files in the repository.  
 
 The file `parameters.yaml` describes how to fit a single segmentation for the entire protein.
-The file `parameters_two_segmentation.yaml` describes how you can segment chain A and chain C (for example) only, and how to create a custom starting segmentation and define a custom prior on the segmentation. Note that if these custom starting segmentation and prior are not defined, the values of the segmentation are taken so that it is uniform. See the class Segmentation in file segmentation.py.
+The file `parameters_two_segmentation.yaml` describes how you can segment chain A and chain C (for example) only, and how to create a custom starting segmentation and define a custom prior on the segmentation. Note that if these custom starting segmentation and prior are not defined, the values of the segmentation are taken so that it is uniform. See the class Segmentation in the file segmentation.py.
 
 ## Installation
 
@@ -18,7 +18,7 @@ conda install pytorch3d -c pytorch3d -c conda-forge
 
 ## Training
 ### Preliminary: consensus reconstruction.
-Before running cryoSPHERE on a dataset is to run a homogeneous reconstruction software such as RELION or cryoSparc. This should yield a star file containing the poses of each image, the CTF and information about the images as well as one or several mrcs file(s) containing the actual images. You should also obtain one or several mrc files corresponding to consensus reconstruction(s). For this tutorial, we assume your images are in a file called `particles.mrcs` and after a consensus reconstruction, you obain a star file named `particles.star` and a consensus reconstruction file called `consensus_map.mrc`. This naming is not mandatory, your files can have arbitrary names as long as the extension is correct.
+Before running cryoSPHERE on a dataset you need  to run a homogeneous reconstruction software such as RELION or cryoSparc. This should yield a star file containing the poses of each image, the CTF and information about the images as well as one or several mrcs file(s) containing the actual images. You should also obtain one or several mrc files corresponding to consensus reconstruction(s). For this tutorial, we assume your images are in a file called `particles.mrcs` and after a consensus reconstruction, you obain a star file named `particles.star` and a consensus reconstruction file called `consensus_map.mrc`. This naming is not mandatory, your files can have arbitrary names as long as the extension is correct. CryoSPHERE would also work with data preprocessed by cryoSparc. In that case you can directly use the `particles.cs` file.
 
 This step is important to obtain an estimation of the CTF and the pose of each image. 
 
