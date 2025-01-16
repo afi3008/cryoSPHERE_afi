@@ -237,7 +237,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
         z = torch.tensor(z, dtype=torch.float32, device=device)
         latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
         for batch_num, z in enumerate(latent_variables_loader): 
-            predicted_structures = predict_structures(vae, z, gmm_repr, device)
+            predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, device)
             save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size)
 
 
