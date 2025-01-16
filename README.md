@@ -83,7 +83,7 @@ analysis
 
 It is also possible to get the structures corresponding to specific images. Save the latent variables corresponding to the images of interest into a `z_interest.npy`. You can then run:
 ```
-cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --output_path /path/to/outpout_folder --z /path/to/z_interest.npy --generate_structures
+cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --output_path /path/to/outpout_folder --z /path/to/z_interest.npy --segmenter /path/to/segmenter.pt --generate_structures
 ``` 
 Setting the `--z /path/to/z_interest.npy` argument will directly decode the latent variables in `z_interest.npy` into structures.
  
