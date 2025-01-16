@@ -1,3 +1,5 @@
+![alt text](https://github.com/gabriel-ducrocq/cryoSPHERE/blob/main/figures/VAEFlow3.pdb?raw=true)
+
 # cryoSPHERE: Single-particle heterogeneous reconstruction from cryo EM
 
 CryoSPHERE is a structural heterogeneous reconstruction software of cryoEM data. It requires an estimate of the CTF and poses of each image. This can be obtained using other softwares.
