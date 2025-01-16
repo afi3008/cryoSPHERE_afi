@@ -3,14 +3,14 @@ import os
 from os.path import dirname, join, abspath
 sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 import torch
-from model import utils
+from cryosphere.model import utils
 import argparse
 import starfile
 import numpy as np
 import seaborn as sns
 from time import time
 from tqdm import tqdm
-from polymer import Polymer
+from cryosphere.model.polymer import Polymer
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
