@@ -43,7 +43,7 @@ The second step is to run cryoSPHERE. To run it, you need  two yaml files: a `pa
 ```
 cryosphere_train --experiment_yaml /path/to/parameters.yaml
 ```
-This command creates a folder named `cryoSPHERE` which contains the PyTorch models `ckpt.pt`, one at the end of each epoch. It also copies the `parameters.yaml` and `image.yaml` files in this directory and creates a `run.log` to log training data.
+This command creates a folder named `cryoSPHERE` which contains the PyTorch models `ckpt_{n_epoch}.pt` and the segmentations "seg_{n_epoch}.pt", one at the end of each epoch. It also copies the `parameters.yaml` and `image.yaml` files in this directory and creates a `run.log` to log training data.
 
 ## Analysis
 
