@@ -72,8 +72,8 @@ analysis
 	   .
 	   |   structure_z_10.pdb
            |    pca.png
-   |
-	pc1
+   
+   |	pc1
 	   |   structure_z_1.pdb
 	   .
 	   .
