@@ -7,6 +7,8 @@ image_yaml: "images.yaml" #Name of the yaml file containing the parameters realt
 particles_path: "/path/to/particles" # path to the folder containing the mrcs files. Note that this will be appended to the paths in the star file.
 cs_star_file:
         file: "path/to/star_or_cs_file" #Path to the star or cryosparc file of the experiment.
+	abinit: True #Whether or not the dataset has been obtained through ab-initio reconstruction. Only needed when reading data preprocessed by cryoSparc. If not specified, it is set as False. You may want to change this value.
+	hetrefine: True #Whether or not the dataset has been obtained through heterogeneous refinement. Only needed when reading data preprocessed by cryoSparc. If not specified, it is set to False. You may want to change this value.
 segmentation_config: #Definition of the segmentation
 	part1: #There is only one segmentation: the entire protein.
 		all_protein: True #If all_protein is set to True, there is only one segmentation: the entire protein. If not present or False, the segmentation is local and the chain and start and end residue need to be specified.
