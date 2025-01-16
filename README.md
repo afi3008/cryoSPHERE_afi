@@ -1,7 +1,10 @@
 # cryoSPHERE: Single-particle heterogeneous reconstruction from cryo EM
 
 CryoSPHERE is a structural heterogeneous reconstruction software of cryoEM data. It requires an estimate of the CTF and poses of each image. This can be obtained using other softwares.
-CryoSPHERE works with two yaml files: one `parameters.yaml` describing the hyperparameters used to train cryoSPHERE and a `image.yaml` file, describing the images in the dataset. You can find an commented example of these files in the repository.  
+CryoSPHERE works with two yaml files: one `parameters.yaml` describing the hyperparameters used to train cryoSPHERE and a `image.yaml` file, describing the images in the dataset. You can find a commented example of these files in the repository.  
+
+The file `parameters.yaml` describes how to fit a single segmentation for the entire protein.
+The file `parameters_two_segmentation.yaml` describes how you can segment chain A and chain C (for example) only, and how to create a custom starting segmentation and define a custom prior on the segmentation. Note that if these custom starting segmentation and prior are not defined, the values of the segmentation are taken so that it is uniform. See the class Segmentation in file segmentation.py.
 
 ## Installation
 
