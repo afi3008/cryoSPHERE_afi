@@ -8,9 +8,16 @@ particles_path: "/path/to/particles" # path to the folder containing the mrcs fi
 cs_star_file:
         file: "path/to/star_or_cs_file" #Path to the star or cryosparc file of the experiment.
 segmentation_config: #Definition of the segmentation
-	part1: #There is only one segmentation: the entire protein.
-		all_protein: True #If all_protein is set to True, there is only one segmentation: the entire protein. If not present or False, the segmentation is local and the chain and start and end residue need to be specified.
-		N_segm: 20 #Number of segments.
+        part1:  #This is a first segmentation, located on chain A, going from residue 0 to residue 502.
+                start_res: 0 #Starting residue in the local segmentation. Note that the numbering goes from 0 to N_residues - 1
+                end_res: 502 #Ending residue in the local segmentation. start_res and end_res are included in the segmentation
+                chain: "A" # Chain that we segment.
+                N_segm: 10 #Number of segments for segmenting residues 0 to 502 of chain A
+	part2: #This is a second segmentation, located on chain C, going from residue 10 to 350
+		start_res: 10
+		end_res: 350
+		chain: "C"
+		N_segm: 5
 lp_bandwidth:   #Bandwith at which we low pass filter the images: all frequencies > 1/lp_bandwidth are set to 0. 
 loss_mask_radius: 1 #Radius of the circular mask used to compute the correlation loss, in percentage of half of the side length: 1 mean the circular mask streches to the edges of the image. Remove if not used. 
 input_mask_radius: 1 #Radius of the circular mask used on the images before feeding them to the encoder. Defined the same as loss_mask_radius. Remove if not used.
