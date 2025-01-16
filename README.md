@@ -56,9 +56,9 @@ Finally, if you do not specify a starting segmentation, the means of the Gaussia
 The same is true for the prior distribution on the segmentation. You can specify a starting segmentation or a prior, or both, or none, for each part you are segmenting. See `parameters_two_segmentation.yaml` for an example.
 ## Analysis
 
-You can first get the latent variables corresponding to the imagaes and generate a PCA analysis of the latent space, with latent traversal of first principal components::
+Once cryoSPHERE has been trained, you can get the latent variables corresponding to the images and generate a PCA analysis of the latent space, with latent traversal of first principal components::
 ```
-cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --output_path /path/to/outpout_folder --no-generate_structures
+cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --segmenter /path/to/segmenter.pt --output_path /path/to/outpout_folder --no-generate_structures
 ```
 where `model.pt` is the saved torch model you want to analyze and output_folder is the folder where you want to save the results of the analysis.
 This will create the following directory structure:
