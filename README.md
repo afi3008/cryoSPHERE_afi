@@ -30,7 +30,7 @@ cryosphere_center_origin --pdb_file_path fitted_structure.pdb --mrc_file_path co
 This yields a pdb file `fitted_structure_centered.pdb` of the centered structure and a mrc file `consensus_map_centered.mrc` of the centered consensus volume.
 
 ### First step bis (optional)
-Since the datasets are usually very noisy, it might be helpful to apply a low pass filter to the images. To determine the bandwith cutoff, first turn the centered structure into a volume, using the same GMM representation of the protein used during training of cryoSPHERE:
+Since the datasets are usually very noisy, it might be helpful to apply a low pass filter to the images. To determine the bandwith cutoff, first turn the centered structure into a volume, using the same GMM representation of the protein used during the training of cryoSPHERE:
 ```
 cryosphere_structure_to_volume --image_yaml /path/to/image.yaml --structure_path/path/to/fitted_structure_centered.pdb --output_path /path/to/fitted_structure_centered_volume.mrc
 ```
