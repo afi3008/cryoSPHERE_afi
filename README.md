@@ -56,11 +56,11 @@ Finally, if you do not specify a starting segmentation, the means of the Gaussia
 The same is true for the prior distribution on the segmentation. You can specify a starting segmentation or a prior, or both, or none, for each part you are segmenting. See `parameters_two_segmentation.yaml` for an example.
 ## Analysis
 
-Once cryoSPHERE has been trained, you can get the latent variables corresponding to the images and generate a PCA analysis of the latent space, with latent traversal of first principal components::
+Once cryoSPHERE has been trained, you can get the latent variables corresponding to the images and generate a PCA analysis of the latent space, with latent traversal of first principal components:
 ```
 cryosphere_analyze --experiment_yaml /path/to/parameters.yaml --model /path/to/model.pt --segmenter /path/to/segmenter.pt --output_path /path/to/outpout_folder --no-generate_structures
 ```
-where `model.pt` is the saved torch model you want to analyze and output_folder is the folder where you want to save the results of the analysis.
+where `model.pt` is the saved torch model you want to analyze, `segmenter.pt` is the corresponding segmentation  and output_folder is the folder where you want to save the results of the analysis.
 This will create the following directory structure:
 ```
 analysis
@@ -71,13 +71,13 @@ analysis
 	   .
 	   .
 	   |   structure_z_10.pdb
-      |   pca.png
-
+           |    pca.png
+   |
 	pc1
 	   |   structure_z_1.pdb
 	   .
 	   .
-      .
+           .
 ```
  If you want to generate all structures (one for each images), you can set `--generate_structures` instead. This will skip the PCA step. The file `z.npy` contains the latent variable associated to each image (in the same order as the images in the star file), the `.pdb` files are the structures sampled along the principal component (from lowest to highest values along that PC) and the `.png` files are images of the PCA decompisitions.
 
