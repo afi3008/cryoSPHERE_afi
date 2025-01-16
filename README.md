@@ -1,4 +1,4 @@
-![alt text](https://github.com/gabriel-ducrocq/cryoSPHERE/blob/main/figures/VAEFlow3.jpg?raw=true)
+![alt text](https://github.com/gabriel-ducrocq/cryoSPHERE/blob/main/cryosphere/figures/VAEFlow3.jpg?raw=true)
 
 # cryoSPHERE: Single-particle heterogeneous reconstruction from cryo EM
 
