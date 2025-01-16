@@ -45,6 +45,9 @@ cryosphere_train --experiment_yaml /path/to/parameters.yaml
 ```
 This command creates a folder named `cryoSPHERE` which contains the PyTorch models `ckpt_{n_epoch}.pt` and the segmentations `seg_{n_epoch}.pt`, one at the end of each epoch. It also copies the `parameters.yaml` and `image.yaml` files in this directory and creates a `run.log` to log training data.
 
+You can customize the `parameters.yaml` file, especially the segmentation. You can choose between a global segmentation of the protein and a local one.
+The global segmentation is demonstrated in `parameters.yaml` and only requires you to set the number of segments and the entry `all_protein: True`. Be careful that this segmentation considers the entire protein as a single chain, where the residues are ordered as in the pdb file of the base structure you are using.
+The local segmentation allows you to specify what part of the protein you want to segment, and what part of the protein you want to fix. If your protein has chains e.g A, B, C and D, you can segment only the residues 0 to 50 of chain A and the residues 130 to 240 of chain C. The remaining residues of the protein will not move. These two segmentations are "separate". See `parameters_two_segmentation.yaml`.
 ## Analysis
 
 You can first get the latent variables corresponding to the imagaes and generate a PCA analysis of the latent space, with latent traversal of first principal components::
