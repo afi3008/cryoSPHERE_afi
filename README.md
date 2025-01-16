@@ -23,7 +23,7 @@ Before running cryoSPHERE on a dataset you need  to run a homogeneous reconstruc
 This step is important to obtain an estimation of the CTF and the pose of each image. 
 
 ### First step: centering the structure
-Fit a good atomic structure of the protein of interest into the volume obtained at step one (`consensus_map.mrc`), using e.g ChimeraX. Save this structure in pdb format: `fitted_structure.pdb`. You can now use cryopshere command line tools to center the structure and volume:
+Fit a good atomic structure of the protein of interest into the volume obtained in the prelimiary step (`consensus_map.mrc`), using e.g ChimeraX. Save this structure in pdb format: `fitted_structure.pdb`. You can now use cryopshere command line tools to center the structure and volume:
 ```
 cryosphere_center_origin --pdb_file_path fitted_structure.pdb --mrc_file_path consensus_map.mrc
 ```
