@@ -79,7 +79,7 @@ analysis
 	   .
            .
 ```
- If you want to generate all structures (one for each images), you can set `--generate_structures` instead. This will skip the PCA step. The file `z.npy` contains the latent variable associated to each image (in the same order as the images in the star file), the `.pdb` files are the structures sampled along the principal component (from lowest to highest values along that PC) and the `.png` files are images of the PCA decompisitions.
+ If you want to generate all structures (one for each image), you can set `--generate_structures` instead. This will skip the PCA step. The file `z.npy` contains the latent variable associated to each image (in the same order as the images in the star file), the `.pdb` files are the structures sampled along the principal component (from lowest to highest values along that PC) and the `.png` files are images of the PCA decompisitions.
 
 It is also possible to get the structures corresponding to specific images. Save the latent variables corresponding to the images of interest into a `z_interest.npy`. You can then run:
 ```
