@@ -14,8 +14,8 @@ CryoSPHERE is available as a python package named `cryosphere`. Create a conda e
 ```
 conda create -n cryosphere python==3.9.20
 conda activate cryosphere
-pip install cryosphere
 conda install pytorch3d -c pytorch3d -c conda-forge
+pip install cryosphere
 ```
 
 ## Training
