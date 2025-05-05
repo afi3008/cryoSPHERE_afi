@@ -149,6 +149,22 @@ def parse_yaml(path, analyze=False):
     if not analyze:
         set_wandb(experiment_settings)
 
+    if experiment_settings["seed"]:
+        seed = experiment_settings["seed"]
+        torch.manual_seed(seed)
+        # Set seed for CUDA (if using GPUs)
+        torch.cuda.manual_seed_all(seed)  # For multi-GPU setups
+        # Set seed for Python's random module
+        random.seed(seed)
+        # Set seed for NumPy
+        np.random.seed(seed)
+        
+    if experiment_settings["deterministic_cuda"]:
+        # Ensure deterministic behavior for PyTorch operations
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    torch.manual_seed(experiment_settings["seed"])
     folder_path = experiment_settings["folder_path"]
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     path_results = os.path.join(folder_path, "cryoSPHERE")
