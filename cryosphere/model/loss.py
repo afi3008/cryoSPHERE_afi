@@ -228,9 +228,11 @@ def remove_duplicate_pairs(pairs_a, pairs_b, remove_flip=True):
     #np.ravel_multi_index gets the index of the elements in non linear shape as if the array was linear
     #so ravel_multi_index(pairs_a.T, mask.shape) get the indexes of the elements in the pair as if mask was linear
     #So the next line sets all the values of the mask array where the indexes are in pairs_a to True
+    print("PAIR A SHAPE", pairs_a.T.shape)
     np.put(mask, np.ravel_multi_index(pairs_a.T, mask.shape), True)
     #This line set all the values of the mask array where the indexes are in pairs_b to False. This step is needed so that pairs in a that are also
     #in b are set to False
+    print("PAIR B SHAPE", pairs_b.T.shape)
     np.put(mask, np.ravel_multi_index(pairs_b.T, mask.shape), False)
     if remove_flip:
         #This line does the same thing except we first flip the coordinates in pairs_b, so we get both (x, y) and (y, x) to False

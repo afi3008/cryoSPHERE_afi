@@ -284,6 +284,8 @@ def parse_yaml(path, analyze=False):
         clash_pairs = None
     else:
         clash_pairs = find_range_cutoff_pairs(base_structure.coord, experiment_settings["loss"]["clashing_loss"]["min_clashing_cutoff_pairs"],experiment_settings["loss"]["clashing_loss"]["max_clashing_cutoff_pairs"])
+        print("connect_pairs", connect_pairs)
+        print("Connext pairs shape", connect_pairs.shape)
         clash_pairs = remove_duplicate_pairs(clash_pairs, connect_pairs)
         clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
 
