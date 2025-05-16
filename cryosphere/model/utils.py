@@ -277,18 +277,16 @@ def parse_yaml(path, analyze=False):
 
     connect_pairs = find_continuous_pairs(base_structure.chain_id, base_structure.res_id, base_structure.atom_name)
     dists = calc_dist_by_pair_indices(base_structure.coord, connect_pairs)
-    connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
     dists = torch.tensor(dists, device=device, dtype=torch.float32)
     assert "full_clashing_loss" in experiment_settings["loss"]["clashing_loss"], "Please indicate whether you want to use the full clashing loss or its light version."
     if experiment_settings["loss"]["clashing_loss"]["full_clashing_loss"]:
         clash_pairs = None
     else:
         clash_pairs = find_range_cutoff_pairs(base_structure.coord, experiment_settings["loss"]["clashing_loss"]["min_clashing_cutoff_pairs"],experiment_settings["loss"]["clashing_loss"]["max_clashing_cutoff_pairs"])
-        print("connect_pairs", connect_pairs)
-        print("Connext pairs shape", connect_pairs.shape)
         clash_pairs = remove_duplicate_pairs(clash_pairs, connect_pairs)
         clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
 
+    connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
     structural_loss_parameters = {"connect_pairs":connect_pairs, 
                        "clash_pairs":clash_pairs, 
                        "connect_distances":dists}
