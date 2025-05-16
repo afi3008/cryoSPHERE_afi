@@ -64,8 +64,8 @@ loss:
   clashing_loss:
     full_clashing_loss: True #Whether to use the full clashing loss. Is False, use the lightweight version of this loss. See cryoSPHERE paper.
     clashing_cutoff: 4 #Threshold in Å to determine if two residues are clashing or not during the training.
-    min_clashing_cutoff_pair: 4 #Min threshold to use for the lightweight version of the clashing loss.
-    max_clashing_cutoff: 10 #Max threshold to use for the lightweight version of the clashing loss.
+    min_clashing_cutoff_pairs: 4 #Min threshold to use for the lightweight version of the clashing loss.
+    max_clashing_cutoff_pairs: 10 #Max threshold to use for the lightweight version of the clashing loss.
     schedule: "constant" #Schedule for the \beta of this loss. "constant" is constant beta. "linear" is linear increasing. "cyclical" is cyclical evolution. Default work well
     beta: 0.1 #Constant beta value.
   continuity_loss: #Hyperparameters related to the continuity loss.
