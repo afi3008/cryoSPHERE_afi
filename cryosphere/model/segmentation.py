@@ -117,7 +117,7 @@ class Segmentation(torch.nn.Module):
 
 			self.segmentation_prior = {}
 			for part, part_config in segmentation_config.items():
-				if "segmentation_prior" not in part_config or part_config["segmentation_prior"] == "uniform":
+				if "segmentation_prior" not in part_config or part_config["segmentation_prior"]["type"] == "uniform":
 				#Create a prior with values taken uniformly
 					self.segmentation_prior[part] = {}
 					N_segments = part_config["N_segm"]
