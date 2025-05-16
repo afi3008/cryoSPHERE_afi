@@ -39,7 +39,7 @@ def structure_to_volume(image_yaml, structure_path, output_path):
     struct = gmm_repr.mus[None, :, :]
     origin = - Npix_downsize // 2 * apix_downsize,
     volume = renderer.structure_to_volume(struct, gmm_repr.sigmas, gmm_repr.amplitudes, grid, device)
-    mrc.MRCFile.write(output_path, np.transpose(volume[0].detach().cpu().numpy(), axes=(2, 1, 0)), Apix=apix_downsize, is_vol=True, xorg = origin, yorg = origin, zorg = origin)
+    mrc.MRCFile.write(output_path, np.transpose(volume[0].detach().cpu().numpy(), axes=(2, 1, 0)), Apix=apix_downsize, is_vol=True)
 
 def turn_structure_to_volume():
     parser_arg = argparse.ArgumentParser()
