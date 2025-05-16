@@ -30,8 +30,8 @@ def structure_to_volume(image_yaml, structure_path, output_path):
 
     base_structure = Polymer.from_pdb(structure_path, True)
     amplitudes = torch.tensor(base_structure.num_electron, dtype=torch.float32, device=device)[:, None]
-    #grid = EMAN2Grid(Npix_downsize, apix_downsize, device=device)
-    grid = BaseGrid(Npix_downsize, apix_downsize, device=device)
+    grid = EMAN2Grid(Npix_downsize, apix_downsize, device=device)
+    #grid = BaseGrid(Npix_downsize, apix_downsize, device=device)
     gmm_repr = Gaussian(torch.tensor(base_structure.coord, dtype=torch.float32, device=device), 
             torch.ones((base_structure.coord.shape[0], 1), dtype=torch.float32, device=device)*image_settings["sigma_gmm"], 
             amplitudes)
