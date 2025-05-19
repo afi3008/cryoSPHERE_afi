@@ -13,6 +13,10 @@ segmentation_config: #Definition of the segmentation
 	part1: #There is only one segmentation: the entire protein.
 		all_protein: True #If all_protein is set to True, there is only one segmentation: the entire protein. If not present or False, the segmentation is local and the chain and start and end residue need to be specified.
 		N_segm: 20 #Number of segments.
+    segmentation_start:
+      type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
+    segmentation_prior:
+      type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
 lp_bandwidth:   #Bandwith at which we low pass filter the images: all frequencies > 1/lp_bandwidth are set to 0. 
 loss_mask_radius: 1 #Radius of the circular mask used to compute the correlation loss, in percentage of half of the side length: 1 mean the circular mask streches to the edges of the image. Remove if not used. 
 input_mask_radius: 1 #Radius of the circular mask used on the images before feeding them to the encoder. Defined the same as loss_mask_radius. Remove if not used.
@@ -31,10 +35,6 @@ encoder:
     hidden_dimensions: [512, 256, 64, 64] #List of the hidden dimensions of the encoder (from left to right)
 decoder:
     hidden_dimensions: [512, 512] #Same as above but for the decoder.
-segmentation_start:
-  type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
-segmentation_prior:
-  type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
 optimizer:
   name: "adam" #Name of the optimizer. Currently only adam is supported.
   learning_rate: 0.00003 #Learning rate for the parameters of the encoder and decoder. Default work well.
