@@ -237,11 +237,11 @@ def parse_yaml(path, analyze=False):
     N_residues = len(residues_indexes)
 
     segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"], device=device)
+    experiment_settings["segmentation_prior"] = segmenter.segmentation_prior
     if torch.cuda.device_count() > 1:
         segmenter = torch.nn.DataParallel(segmenter)
 
     segmenter.to(device)
-    experiment_settings["segmentation_prior"] = segmenter.segmentation_prior 
   
 
     if experiment_settings["optimizer"]["name"] == "adam":
