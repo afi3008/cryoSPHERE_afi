@@ -186,8 +186,8 @@ def parse_yaml(path, analyze=False):
     with open(image_file, "r") as file:
         image_settings = yaml.safe_load(file)
 
-    if experiment_settings["device"] == "GPU":
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if experiment_settings["device"][:5] == "cuda:" and torch.cuda.is_available():
+        device = experiment_settings["device"]
     else:
         device = "cpu"
 
