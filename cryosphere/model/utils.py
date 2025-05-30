@@ -187,7 +187,7 @@ def parse_yaml(path, analyze=False):
         image_settings = yaml.safe_load(file)
 
     if experiment_settings["device"] == "GPU":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     else:
         device = "cpu"
 
@@ -293,7 +293,7 @@ def parse_yaml(path, analyze=False):
 
 
     logging.info(f"Running cryoSPHERE on folder: {folder_path}")
-    logging.info(f"Running cryoSPHERE using device: {device}")
+    logging.info(f"Running cryoSPHERE using device: {device} with device number {torch.cuda.current_device()} and name {torch.cuda.get_device_name(torch.cuda.current_device())}")
     logging.info(f"Find checkpoints at {path_results}")
     logging.info(f"Using particles: {particles_path}. Using starfile: {cs_star_config['file']}.")
     logging.info(f"Running the amortized version of cryoSPHERE: {amortized}. Training for {N_epochs} epochs.")
