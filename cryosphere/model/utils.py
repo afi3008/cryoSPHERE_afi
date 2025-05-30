@@ -313,6 +313,8 @@ def parse_yaml(path, analyze=False):
     logging.info(f"Learning rate for the encoder and decoder: {experiment_settings['optimizer']['learning_rate']}.")
     logging.info(f"""Learning rate for the segmentation GMM: {experiment_settings["optimizer"]["learning_rate"] if "learning_rate_segmentation" not in experiment_settings["optimizer"] 
                     else experiment_settings["optimizer"]["learning_rate_segmentation"]}.""")
+    logging.info(f"""Using the model from previous run: {experiment_settings["resume_training"]["model"]}""")
+    logging.info(f"""Using the segmentation from previous run: {experiment_settings["resume_training"]["segmentation"]}""")
 
 
 
