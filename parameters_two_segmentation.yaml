@@ -82,3 +82,6 @@ loss:
     beta: 0.000001   #Same as above
 resume_training: 
   model: null #If null, training the neural network is initialized. If set to the path to a .pt file of a previous model, resumes training of this model.
+  segmentation: null #If null, the segmentation is initialized. If set to the pa
+th of the .pt file of a previous segmentation, resumes the training of this segm
+entation.
