@@ -220,9 +220,6 @@ def parse_yaml(path, analyze=False):
     if experiment_settings["resume_training"]["model"]:
         vae.load_state_dict(torch.load(experiment_settings["resume_training"]["model"]))
         vae.to(device)
-    if experiment_settings["resume_training"]["segmentation"]:
-        segmenter.load_state_dict(torch.load(experiment_settings["resume_training"]["segmentation"]))
-        segmenter.to(device)
 
 
     grid = EMAN2Grid(Npix_downsize, apix_downsize, device=device)
@@ -239,6 +236,9 @@ def parse_yaml(path, analyze=False):
     segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"], device=device)
     segmenter.to(device)
     experiment_settings["segmentation_prior"] = segmenter.segmentation_prior
+    if experiment_settings["resume_training"]["segmentation"]:
+        segmenter.load_state_dict(torch.load(experiment_settings["resume_training"]["segmentation"]))
+        segmenter.to(device)
   
 
     if experiment_settings["optimizer"]["name"] == "adam":
