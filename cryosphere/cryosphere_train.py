@@ -52,10 +52,10 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
         #data_loader.set_epoch(epoch) 
         data_loader = tqdm(iter(data_loader))
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
-            batch_images = batch_images.to(device)
-            batch_poses = batch_poses.to(device)
-            batch_poses_translation = batch_poses_translation.to(device)
-            indexes = indexes.to(device)
+            batch_images = batch_images.to(gpu_id)
+            batch_poses = batch_poses.to(gpu_id)
+            batch_poses_translation = batch_poses_translation.to(gpu_id)
+            indexes = indexes.to(gpu_id)
             flattened_batch_images = batch_images.flatten(start_dim=-2)
             batch_translated_images = image_translator.transform(batch_images, batch_poses_translation[:, None, :])
             lp_batch_translated_images = low_pass_images(batch_translated_images, lp_mask2d)
@@ -66,13 +66,13 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
 
             segmentation = segmenter.sample_segments(batch_images.shape[0])
             quaternions_per_domain, translations_per_domain = vae.decode(latent_variables)
-            translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation, base_structure.coord.shape[0], batch_size, device)
-            predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, device)
+            translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation, base_structure.coord.shape[0], batch_size, gpu_id)
+            predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, gpu_id)
             posed_predicted_structures = renderer.rotate_structure(predicted_structures, batch_poses)
             predicted_images  = renderer.project(posed_predicted_structures, gmm_repr.sigmas, gmm_repr.amplitudes, grid)
             batch_predicted_images = renderer.apply_ctf(predicted_images, ctf, indexes)/dataset.f_std
             loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae, segmenter, experiment_settings, tracking_metrics, 
-                structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=device)
+                structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=gpu_id)
 
             loss.backward()
             optimizer.step()
