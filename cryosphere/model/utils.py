@@ -426,8 +426,8 @@ def monitor_training(segmentation, segmenter, tracking_metrics, experiment_setti
 
         model_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "ckpt" + str(tracking_metrics["epoch"]) + ".pt" )
         segmenter_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "seg" + str(tracking_metrics["epoch"]) + ".pt" )
-        torch.save(vae.module.state_dict(), model_path)
-        torch.save(segmenter.module.state_dict(), segmenter_path)
+        torch.save(vae.state_dict(), model_path)
+        torch.save(segmenter.state_dict(), segmenter_path)
         information_strings = [f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
             || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"][0]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"][0]} ||
             l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}"""]

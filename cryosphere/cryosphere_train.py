@@ -39,7 +39,7 @@ def train(rank, world_size, yaml_setting_path):
 
 def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
     base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter, gpu_id):
-
+    print("GPU_ID:", gpu_id)
     vae = DDP(vae, device_ids=[gpu_id])
     segmenter = DDP(segmenter, device_ids=[gpu_id])
     for epoch in range(N_epochs):
@@ -92,6 +92,7 @@ def cryosphere_train():
     path = args.experiment_yaml
 
     world_size = torch.cuda.device_count()
+    print("DEVICE COUNT", world_size)
     mp.spawn(train, args=(world_size, path), nprocs=world_size)
 
 
