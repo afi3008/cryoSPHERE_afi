@@ -24,6 +24,7 @@ from cryosphere.model.ctf import CTF
 from biotite.structure.io.pdb import PDBFile
 from pytorch3d.transforms import Transform3d
 from cryosphere.model.polymer import Polymer
+from torch.distributed import init_process_group
 from cryosphere.model.dataset import ImageDataSet
 from cryosphere.model.gmm import Gaussian, EMAN2Grid
 from cryosphere.model.segmentation import Segmentation

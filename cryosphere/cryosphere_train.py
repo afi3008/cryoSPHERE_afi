@@ -11,10 +11,10 @@ import torch.nn.functional as F
 import torch.multiprocessing as mp
 from cryosphere.model import renderer
 from torch.utils.data import DataLoader
-from cryosphere.model.utils import low_pass_images, ddp_setup
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.distributed import init_process_group, destroy_process_group
+from cryosphere.model.utils import low_pass_images, ddp_setup
+from torch.distributed import destroy_process_group
 from cryosphere.model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
 
 
