@@ -60,12 +60,12 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
             batch_translated_images = image_translator.transform(batch_images, batch_poses_translation[:, None, :])
             lp_batch_translated_images = low_pass_images(batch_translated_images, lp_mask2d)
             if amortized:
-                latent_variables, latent_mean, latent_std = vae.model.sample_latent(flattened_batch_images)
+                latent_variables, latent_mean, latent_std = vae.module.sample_latent(flattened_batch_images)
             else:
-                latent_variables, latent_mean, latent_std = vae.model.sample_latent(None, indexes)
+                latent_variables, latent_mean, latent_std = vae.module.sample_latent(None, indexes)
 
-            segmentation = segmenter.model.sample_segments(batch_images.shape[0])
-            quaternions_per_domain, translations_per_domain = vae.model.decode(latent_variables)
+            segmentation = segmenter.module.sample_segments(batch_images.shape[0])
+            quaternions_per_domain, translations_per_domain = vae.module.decode(latent_variables)
             translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation, base_structure.coord.shape[0], batch_size, gpu_id)
             predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, gpu_id)
             posed_predicted_structures = renderer.rotate_structure(predicted_structures, batch_poses)
