@@ -49,7 +49,7 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
 
         data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers = experiment_settings["num_workers"], drop_last=True, sampler=DistributedSampler(dataset))
         start_tot = time()
-        data_loader.set_epoch(epoch) 
+        #data_loader.set_epoch(epoch) 
         data_loader = tqdm(iter(data_loader))
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
             batch_images = batch_images.to(device)
