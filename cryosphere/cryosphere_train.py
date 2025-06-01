@@ -81,7 +81,7 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
         if scheduler:
             scheduler.step()
 
-        model.utils.monitor_training(segmentation, segmenter, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images, rank)
+        model.utils.monitor_training(segmentation, segmenter.module, tracking_metrics, experiment_settings, vae.module, optimizer, predicted_images, batch_images, rank)
 
 
 def cryosphere_train():
