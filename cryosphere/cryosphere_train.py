@@ -92,7 +92,6 @@ def cryosphere_train():
     path = args.experiment_yaml
 
     world_size = torch.cuda.device_count()
-    train(path)
     mp.spawn(train, args=(world_size, yaml_setting_path), nprocs=world_size)
 
 
