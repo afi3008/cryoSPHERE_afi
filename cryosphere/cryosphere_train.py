@@ -8,9 +8,13 @@ from tqdm import tqdm
 from time import time
 from cryosphere import model
 import torch.nn.functional as F
+import torch.multiprocessing as mp
 from cryosphere.model import renderer
 from torch.utils.data import DataLoader
-from cryosphere.model.utils import low_pass_images
+from cryosphere.model.utils import low_pass_images, ddp_setup
+from torch.utils.data.distributed import DistributedSampler
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.distributed import init_process_group, destroy_process_group
 from cryosphere.model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
 
 
@@ -21,21 +25,32 @@ logger = logging.getLogger(__name__)
 parser_arg = argparse.ArgumentParser()
 parser_arg.add_argument('--experiment_yaml', type=str, required=True, help="path to the yaml containing all the parameters for the cryoSPHERE run.")
 
-def train(yaml_setting_path):
+def train(rank, world_size, yaml_setting_path):
     """
     train a VAE network
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment
     """
+    ddp_setup(rank, world_size)
     (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
     base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter) = model.utils.parse_yaml(yaml_setting_path)
+    start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
+    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter, rank)
+    destroy_process_group()
 
+def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
+    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter, gpu_id):
+
+    vae = DDP(vae, device_ids=[gpu_id])
+    segmenter = DDP(segmenter, device_ids=[gpu_id])
     for epoch in range(N_epochs):
         tracking_metrics = {"wandb":experiment_settings["wandb"], "epoch": epoch, "path_results":path_results ,"correlation_loss":[], "kl_prior_latent":[], 
                             "kl_prior_segmentation_mean":[], "kl_prior_segmentation_std":[], "kl_prior_segmentation_proportions":[], "l2_pen":[], "continuity_loss":[], 
                             "clashing_loss":[]}
 
-        data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers = experiment_settings["num_workers"], drop_last=True)))
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers = experiment_settings["num_workers"], drop_last=True, sampler=DistributedSampler(dataset))
         start_tot = time()
+        data_loader.set_epoch(epoch) 
+        data_loader = tqdm(iter(data_loader))
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
             batch_images = batch_images.to(device)
             batch_poses = batch_poses.to(device)
@@ -66,7 +81,7 @@ def train(yaml_setting_path):
         if scheduler:
             scheduler.step()
 
-        model.utils.monitor_training(segmentation, segmenter, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images)
+        model.utils.monitor_training(segmentation, segmenter, tracking_metrics, experiment_settings, vae, optimizer, predicted_images, batch_images, rank)
 
 
 def cryosphere_train():
@@ -75,7 +90,10 @@ def cryosphere_train():
     """
     args = parser_arg.parse_args()
     path = args.experiment_yaml
+
+    world_size = torch.cuda.device_count()
     train(path)
+    mp.spawn(train, args=(world_size, yaml_setting_path), nprocs=world_size)
 
 
 if __name__ == '__main__':

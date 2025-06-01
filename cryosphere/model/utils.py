@@ -31,6 +31,19 @@ from pytorch3d.transforms import quaternion_to_axis_angle, axis_angle_to_matrix,
 from cryosphere.model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
 
 
+
+def ddp_setup(rank: int, world_size: int):
+   """
+   Args:
+       rank: Unique identifier of each process
+      world_size: Total number of processes
+   """
+   os.environ["MASTER_ADDR"] = "localhost"
+   os.environ["MASTER_PORT"] = "12355"
+   torch.cuda.set_device(rank)
+   init_process_group(backend="nccl", rank=rank, world_size=world_size)
+
+
 def primal_to_fourier2d(images):
     """
     Computes the fourier transform of the images.
@@ -376,7 +389,7 @@ class SpatialGridTranslate(torch.nn.Module):
         return sampled[:, 0, :, :]
 
 
-def monitor_training(segmentation, segmenter, tracking_metrics, experiment_settings, vae, optimizer, pred_im, true_im):
+def monitor_training(segmentation, segmenter, tracking_metrics, experiment_settings, vae, optimizer, pred_im, true_im, gpu_id):
     """
     Monitors the training process through wandb and saving models. The metrics are logged into a file and optionnally sent to Weight and Biases.
     :param segmentation: torch.tensor(N_batch, N_residues, N_segments) weights of the segmentation
@@ -388,37 +401,38 @@ def monitor_training(segmentation, segmenter, tracking_metrics, experiment_setti
     :param pred_im: torch.tensor(N_batch, N_pix, N_pix), sample of predicted images, without CTF corruption
     :param true_im: torch.tensor(N_batch, N_pix, N_pix), corresponding sample of true images. 
     """
-    if tracking_metrics["wandb"] == True:
-        ignore = ["wandb", "epoch", "path_results", "betas"]
-        wandb.log({key: np.mean(val) for key, val in tracking_metrics.items() if key not in ignore})
-        wandb.log({"epoch": tracking_metrics["epoch"]})
-        wandb.log({"lr_segmentation":optimizer.param_groups[0]['lr']})
-        wandb.log({"lr":optimizer.param_groups[1]['lr']})
-        for part, segm in segmentation.items():
-            hard_segments = np.argmax(segm["segmentation"].detach().cpu().numpy(), axis=-1)
-            for l in range(segm["segmentation"].shape[-1]):
-                wandb.log({f"segments/{part}/segment_{l}": np.sum(hard_segments[0] == l)})
+    if gpu_id == 0:
+        if tracking_metrics["wandb"] == True:
+            ignore = ["wandb", "epoch", "path_results", "betas"]
+            wandb.log({key: np.mean(val) for key, val in tracking_metrics.items() if key not in ignore})
+            wandb.log({"epoch": tracking_metrics["epoch"]})
+            wandb.log({"lr_segmentation":optimizer.param_groups[0]['lr']})
+            wandb.log({"lr":optimizer.param_groups[1]['lr']})
+            for part, segm in segmentation.items():
+                hard_segments = np.argmax(segm["segmentation"].detach().cpu().numpy(), axis=-1)
+                for l in range(segm["segmentation"].shape[-1]):
+                    wandb.log({f"segments/{part}/segment_{l}": np.sum(hard_segments[0] == l)})
 
 
-        pred_im = pred_im[0].detach().cpu().numpy()[:, :, None]
-        true_im = true_im[0].detach().cpu().numpy()[:, :, None]
-        predicted_image_wandb = wandb.Image(pred_im, caption="Predicted image")
-        true_image_wandb = wandb.Image(true_im, caption="True image")
-        wandb.log({"Images/true_image": true_image_wandb})
-        wandb.log({"Images/predicted_image": predicted_image_wandb})
-        for loss_term, beta in tracking_metrics["betas"].items():
-            wandb.log({f"betas/{loss_term}": beta})
+            pred_im = pred_im[0].detach().cpu().numpy()[:, :, None]
+            true_im = true_im[0].detach().cpu().numpy()[:, :, None]
+            predicted_image_wandb = wandb.Image(pred_im, caption="Predicted image")
+            true_image_wandb = wandb.Image(true_im, caption="True image")
+            wandb.log({"Images/true_image": true_image_wandb})
+            wandb.log({"Images/predicted_image": predicted_image_wandb})
+            for loss_term, beta in tracking_metrics["betas"].items():
+                wandb.log({f"betas/{loss_term}": beta})
 
-    model_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "ckpt" + str(tracking_metrics["epoch"]) + ".pt" )
-    segmenter_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "seg" + str(tracking_metrics["epoch"]) + ".pt" )
-    torch.save(vae.state_dict(), model_path)
-    torch.save(segmenter.state_dict(), segmenter_path)
-    information_strings = [f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
-        || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"][0]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"][0]} ||
-        l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}"""]
-    information_strings += [f"{loss_term} beta: {beta}" for loss_term, beta in tracking_metrics["betas"].items()]
-    information_string = " || ".join(information_strings)
-    logging.info(information_string)
+        model_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "ckpt" + str(tracking_metrics["epoch"]) + ".pt" )
+        segmenter_path = os.path.join(experiment_settings["folder_path"], "cryoSPHERE", "seg" + str(tracking_metrics["epoch"]) + ".pt" )
+        torch.save(vae.module.state_dict(), model_path)
+        torch.save(segmenter.module.state_dict(), segmenter_path)
+        information_strings = [f"""Epoch: {tracking_metrics["epoch"]} || Correlation loss: {tracking_metrics["correlation_loss"][0]} || KL prior latent: {tracking_metrics["kl_prior_latent"][0]} 
+            || KL prior segmentation std: {tracking_metrics["kl_prior_segmentation_std"][0]} || KL prior segmentation proportions: {tracking_metrics["kl_prior_segmentation_proportions"][0]} ||
+            l2 penalty: {tracking_metrics["l2_pen"][0]} || Continuity loss: {tracking_metrics["continuity_loss"][0]} || Clashing loss: {tracking_metrics["clashing_loss"][0]}"""]
+        information_strings += [f"{loss_term} beta: {beta}" for loss_term, beta in tracking_metrics["betas"].items()]
+        information_string = " || ".join(information_strings)
+        logging.info(information_string)
 
 
 def read_pdb(path):
