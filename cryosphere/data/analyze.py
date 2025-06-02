@@ -215,7 +215,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
     :return:
     """
     (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
-    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, gpu_id = device, analyze=True)
+    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, gpu_id = 0, analyze=True)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
     segmenter.load_state_dict(torch.load(segmenter_path))
