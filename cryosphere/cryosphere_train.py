@@ -78,6 +78,9 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
             optimizer.step()
             optimizer.zero_grad()
 
+            print(f"Data batch epoch {epoch} and gpu {gpu_id}", batch_images)
+            break
+
         if scheduler:
             scheduler.step()
 
