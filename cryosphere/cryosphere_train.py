@@ -25,13 +25,14 @@ logger = logging.getLogger(__name__)
 parser_arg = argparse.ArgumentParser()
 parser_arg.add_argument('--experiment_yaml', type=str, required=True, help="path to the yaml containing all the parameters for the cryoSPHERE run.")
 
-def train(rank, world_size, vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter):
+def train(rank, world_size, yaml_setting_path):
     """
     train a VAE network
     :param yaml_setting_path: str, path the yaml containing all the details of the experiment
     """
     ddp_setup(rank, world_size)
+    (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
+    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter) = model.utils.parse_yaml(yaml_setting_path, rank)
     start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
     base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter, rank)
     destroy_process_group()
@@ -90,10 +91,7 @@ def cryosphere_train():
     path = args.experiment_yaml
 
     world_size = torch.cuda.device_count()
-    (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter) = model.utils.parse_yaml(path)
-    mp.spawn(train, args=(world_size, vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter), nprocs=world_size)
+    mp.spawn(train, args=(world_size, path), nprocs=world_size)
 
 
 if __name__ == '__main__':

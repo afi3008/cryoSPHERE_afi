@@ -151,7 +151,7 @@ def set_wandb(experiment_settings):
             })
 
 
-def parse_yaml(path, analyze=False):
+def parse_yaml(path, gpu_id, analyze=False):
     """
     Parse the yaml file to get the setting for the run.
     :param path: str, path to the yaml file
@@ -161,7 +161,7 @@ def parse_yaml(path, analyze=False):
     with open(path, "r") as file:
         experiment_settings = yaml.safe_load(file)
 
-    if not analyze:
+    if not analyze and gpu_id ==0:
         set_wandb(experiment_settings)
 
     if experiment_settings["seed"]:
