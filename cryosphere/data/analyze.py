@@ -96,10 +96,10 @@ def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_w
 
         batch_images = batch_images.flatten(start_dim=-2)
         latent_variables, latent_mean, latent_std = vae.sample_latent(batch_images, indexes)
-        all_latent_variables.append(latent_variables)
+        all_latent_variables.append(latent_variables.detach().cpu().numpy())
 
 
-    all_latent_variables = torch.concat(all_latent_variables, dim=0).detach().cpu().numpy()
+    all_latent_variables = np.concatenate(all_latent_variables, axis=0)
     latent_path = os.path.join(output_path, "z.npy")
     np.save(latent_path, all_latent_variables)
     return all_latent_variables
@@ -227,16 +227,17 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
-            run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device=device)
+        run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device=device)
 
     else:
         path_structures = os.path.join(output_path, "predicted_structures")
         if not os.path.exists(path_structures):
             os.makedirs(path_structures)
 
-        z = torch.tensor(z, dtype=torch.float32, device=device)
+        z = torch.tensor(z, dtype=torch.float32)
         latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
         for batch_num, z in enumerate(latent_variables_loader): 
+            z = z.to(device)
             predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, device)
             save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size)
 
