@@ -282,6 +282,8 @@ def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_struct
     destroy_process_group()
 
 def generate_structures(rank, vae, segmenter, base_structure, path_structures, latent_variable_dataset, batch_size, gmm_repr):
+    vae = DDP(vae, device_ids=[rank])
+    segmenter = DDP(segmenter, device_ids=[rank])
     latent_variables_loader = iter(DataLoader(latent_variable_dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False, sampler=DistributedSampler(latent_variable_dataset, shuffle=False)))
     for batch_num, (indexes, z) in enumerate(latent_variables_loader): 
         print(f"Structures indexes on GPU {rank}", indexes)
