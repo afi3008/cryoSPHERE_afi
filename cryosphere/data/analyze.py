@@ -147,7 +147,6 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         batch_poses_translation = batch_poses_translation.to(gpu_id)
         indexes = indexes.to(gpu_id)
 
-        print(f"Indexes on GPU {gpu_id}", indexes)
         batch_images = batch_images.flatten(start_dim=-2)
         latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
         batch_latent_mean_list = [torch.zeros_like(latent_mean) for _ in range(world_size)]
@@ -285,6 +284,7 @@ def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_struct
 def generate_structures(rank, vae, segmenter, base_structure, path_structures, latent_variable_dataset, batch_size):
     latent_variables_loader = iter(DataLoader(latent_variable_dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False, sampler=DistributedSampler(latent_variable_dataset, shuffle=False)))
     for batch_num, (indexes, z) in enumerate(latent_variables_loader): 
+        print(f"Structures indexes on GPU {rank}", indexes)
         z = z.to(rank)
         predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, rank)
         save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size, indexes)
