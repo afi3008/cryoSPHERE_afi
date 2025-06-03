@@ -35,6 +35,21 @@ parser_arg.add_argument('--generate_structures', action=argparse.BooleanOptional
                             generates the structures corresponding to the latent variables given in z.""")
 
 
+def gather(tens, tens_list=None, root=0, group=None):
+    """
+        Sends tensor to root process, which store it in tensor_list.
+    """
+  
+    rank = dist.get_rank()
+    if group is None:
+        group = torch.dist.group.WORLD
+    if rank == root:
+        assert(tensor_list is not None)
+        dist.gather(tensor, gather_list=tensor_list, group=group)
+    else:
+        dist.gather(tensor, dst=root, group=group)
+
+
 def concat_and_save(tens, path):
     """
     Concatenate the lsit of tensor along the dimension 0
@@ -85,10 +100,10 @@ def start_sample_latent(rank, world_size,  yaml_setting_path, output_path, model
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, rank, analyze=True)
     vae.load_state_dict(torch.load(model_path))
     vae.eval()
-    z = sample_latent_variables(rank, vae, dataset, batch_size, output_path)
+    z = sample_latent_variables(rank, world_size, vae, dataset, batch_size, output_path)
     destroy_process_group()
 
-def sample_latent_variables(gpu_id, vae, dataset, batch_size, output_path, num_workers=4):
+def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output_path, num_workers=4):
     """
     Sample all the latent variables of the dataset and save them in a .npy file
     :param vae: object of class VAE corresponding to the model we want to analyze.
@@ -109,13 +124,22 @@ def sample_latent_variables(gpu_id, vae, dataset, batch_size, output_path, num_w
 
         batch_images = batch_images.flatten(start_dim=-2)
         latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
-        all_latent_variables.append(latent_variables.detach().cpu().numpy())
+        batch_latent_mean_list = [torch.zeros_like(latent_mean) for _ in range(world_size)]
+        batch_indexes = [torch.zeros_like(indexes) for _ in range(world_size)]
+        gather(latent_mean, batch_latent_mean_list)
+        gather(indexes, batch_indexes)
+        if gpu_id == 0:
+            all_gpu_indexes = torch.concat(batch_indexes, dim=0)
+            all_gpu_latent_mean = torch.concat(batch_latent_mean_list, dim=0)
+            sorted_batch_indexes = torch.argsort(batch_indexes, dim=0)
+            sorted_batch_latent_mean = all_gpu_latent_mean[sorted_batch_indexes]
+            all_latent_variables.append(sorted_batch_latent_mean.detach().cpu().numpy())
 
 
-    all_latent_variables = np.concatenate(all_latent_variables, axis=0)
-    latent_path = os.path.join(output_path, "z.npy")
-    np.save(latent_path, all_latent_variables)
-    return all_latent_variables
+    if gpu_id == 0:
+        all_latent_variables = np.concatenate(all_latent_variables, axis=0)
+        latent_path = os.path.join(output_path, "z.npy")
+        np.save(latent_path, all_latent_variables)
 
 
 def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
@@ -239,7 +263,8 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
     if z is None:
         world_size = torch.cuda.device_count()
         mp.spawn(start_sample_latent, args=(world_size, yaml_setting_path, output_path, model_path, segmenter_path), nprocs=world_size)
-        #z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
+        latent_path = os.path.join(output_path, "z.npy")
+        z = np.load(latent_path)
 
     if not generate_structures:
         run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device=device)
