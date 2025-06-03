@@ -238,8 +238,8 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
 
     if z is None:
         world_size = torch.cuda.device_count()
-        mp.spawn(sample_latent, args=(world_size, path), nprocs=world_size)
-        z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
+        mp.spawn(start_sample_latent, args=(world_size, path), nprocs=world_size)
+        #z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
         run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device=device)
