@@ -267,7 +267,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
-def generate_structures_wrapper(rank, world_size, z, base_structure, path_structures, batch_size, gmm_repr, yaml_setting_path):
+def generate_structures_wrapper(rank, world_size, z, base_structure, path_structures, batch_size, gmm_repr, yaml_setting_path, model_path, segmenter_path):
     """
     Wrapper function to decode the latent variable in parallel
     :param rank: integer, rank of the device
@@ -332,7 +332,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
 
         z = torch.tensor(z, dtype=torch.float32)
         latent_variable_dataset = LatentDataSet(z)
-        mp.spawn(generate_structures_wrapper, args=(world_size, z, base_structure, path_structures, batch_size, gmm_repr, yaml_setting_path), nprocs=world_size)
+        mp.spawn(generate_structures_wrapper, args=(world_size, z, base_structure, path_structures, batch_size, gmm_repr, yaml_setting_path, model_path, segmenter_path), nprocs=world_size)
 
 
 def analyze_run():
