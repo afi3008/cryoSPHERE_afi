@@ -35,19 +35,43 @@ parser_arg.add_argument('--generate_structures', action=argparse.BooleanOptional
                             generates the structures corresponding to the latent variables given in z.""")
 
 
+
+class LatentDataSet(Dataset):
+    def __init__(self, z):
+        """
+        Create a dataset of images and poses
+        :param z: latent variable to decode into structures
+        """
+
+        self.z = z
+
+    def __len__(self):
+        return self.z.shape[0]
+
+    def __getitem__(self, idx):
+        """
+        #Return a batch of true images, as 2d array
+        # return: the set of indexes queried for the batch, the corresponding images as a torch.tensor((batch_size, side_shape, side_shape)), 
+        # the corresponding poses rotation matrices as torch.tensor((batch_size, 3, 3)), the corresponding poses translations as torch.tensor((batch_size, 2))
+        # NOTA BENE: the convention for the rotation matrix is left multiplication of the coordinates of the atoms of the protein !!
+        """
+        return idx, z[idx]
+
+
+
 def gather(tens, tens_list=None, root=0, group=None):
     """
         Sends tensor to root process, which store it in tensor_list.
     """
   
-    rank = dist.get_rank()
+    rank = torch.dist.get_rank()
     if group is None:
         group = torch.dist.group.WORLD
     if rank == root:
         assert(tensor_list is not None)
-        dist.gather(tensor, gather_list=tensor_list, group=group)
+        torch.dist.gather(tensor, gather_list=tensor_list, group=group)
     else:
-        dist.gather(tensor, dst=root, group=group)
+        torch.dist.gather(tensor, dst=root, group=group)
 
 
 def concat_and_save(tens, path):
