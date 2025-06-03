@@ -79,7 +79,7 @@ def graph_traversal(z_pca, dim, num_points=10):
     traj_pca[:, dim] = np.linspace(start, stop, num_points)
     return traj_pca
 
-def start_sample_latent(rank, world_size,  yaml_setting_path, output_path, num_workers=4):
+def start_sample_latent(rank, world_size,  yaml_setting_path, output_path, model_path, segmenter_path, num_workers=4):
     utils.ddp_setup(rank, world_size)
     (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, rank, analyze=True)
@@ -238,7 +238,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
 
     if z is None:
         world_size = torch.cuda.device_count()
-        mp.spawn(start_sample_latent, args=(world_size, yaml_setting_path, output_path), nprocs=world_size)
+        mp.spawn(start_sample_latent, args=(world_size, yaml_setting_path, output_path, model_path, segmenter_path), nprocs=world_size)
         #z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
