@@ -267,7 +267,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
-def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_structure, path_structures, batch_size, gmm_repr):
+def generate_structures_wrapper(rank, world_size, z, base_structure, path_structures, batch_size, gmm_repr, yaml_setting_path):
     """
     Wrapper function to decode the latent variable in parallel
     :param rank: integer, rank of the device
@@ -277,6 +277,12 @@ def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_struct
     :param segmenter: segmenter object.
     """
     utils.ddp_setup(rank, world_size)
+    (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
+    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, rank, analyze=True)
+    vae.load_state_dict(torch.load(model_path))
+    vae.eval()
+    segmenter.load_state_dict(torch.load(segmenter_path))
+    segmenter.eval()
     latent_variable_dataset = LatentDataSet(z)
     generate_structures(rank, vae, segmenter, base_structure, path_structures, latent_variable_dataset, batch_size, gmm_repr)
     destroy_process_group()
@@ -326,7 +332,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
 
         z = torch.tensor(z, dtype=torch.float32)
         latent_variable_dataset = LatentDataSet(z)
-        mp.spawn(generate_structures_wrapper, args=(world_size, z, vae, segmenter, base_structure, path_structures, batch_size, gmm_repr), nprocs=world_size)
+        mp.spawn(generate_structures_wrapper, args=(world_size, z, base_structure, path_structures, batch_size, gmm_repr, yaml_setting_path), nprocs=world_size)
 
 
 def analyze_run():
