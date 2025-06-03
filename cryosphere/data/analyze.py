@@ -88,7 +88,7 @@ def start_sample_latent(rank, world_size,  yaml_setting_path, output_path, model
     z = sample_latent_variables(rank, vae, dataset, batch_size, output_path)
     destroy_process_group()
 
-def sample_latent_variables(gpu_id, worldsize, vae, dataset, batch_size, output_path, num_workers=4):
+def sample_latent_variables(gpu_id, vae, dataset, batch_size, output_path, num_workers=4):
     """
     Sample all the latent variables of the dataset and save them in a .npy file
     :param vae: object of class VAE corresponding to the model we want to analyze.
