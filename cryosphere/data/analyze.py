@@ -56,7 +56,7 @@ class LatentDataSet(Dataset):
         # the corresponding poses rotation matrices as torch.tensor((batch_size, 3, 3)), the corresponding poses translations as torch.tensor((batch_size, 2))
         # NOTA BENE: the convention for the rotation matrix is left multiplication of the coordinates of the atoms of the protein !!
         """
-        return idx, z[idx]
+        return idx, self.z[idx]
 
 
 
