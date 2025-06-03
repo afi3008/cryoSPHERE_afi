@@ -79,7 +79,7 @@ def graph_traversal(z_pca, dim, num_points=10):
     traj_pca[:, dim] = np.linspace(start, stop, num_points)
     return traj_pca
 
-def start_sample_latent(rank, worldsize,  yaml_setting_path, output_path, num_workers=4):
+def start_sample_latent(rank, world_size,  yaml_setting_path, output_path, num_workers=4):
     utils.ddp_setup(rank, world_size)
     (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
     scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, rank, analyze=True)
