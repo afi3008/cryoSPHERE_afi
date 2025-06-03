@@ -65,14 +65,14 @@ def gather(tens, tens_list=None, root=0, group=None):
         Sends tensor to root process, which store it in tensor_list.
     """
   
-    rank = torch.dist.get_rank()
+    rank = torch.distributed.get_rank()
     if group is None:
-        group = torch.dist.group.WORLD
+        group = torch.distributed.group.WORLD
     if rank == root:
         assert(tensor_list is not None)
-        torch.dist.gather(tensor, gather_list=tensor_list, group=group)
+        torch.distributed.gather(tensor, gather_list=tensor_list, group=group)
     else:
-        torch.dist.gather(tensor, dst=root, group=group)
+        torch.distributed.gather(tensor, dst=root, group=group)
 
 
 def concat_and_save(tens, path):
@@ -267,6 +267,27 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
+def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_structure, path_structures):
+    """
+    Wrapper function to decode the latent variable in parallel
+    :param rank: integer, rank of the device
+    :param world_size: integer, number of devices
+    :param z: torch.tensor(N_latent, latent_dim) latent variable from which we want to output images.
+    :param vae: vae object.
+    :param segmenter: segmenter object.
+    """
+    utils.ddp_setup(rank, world_size)
+    latent_variable_dataset = LatentDataSet(z)
+    generate_structures(rank, vae, segmenter, base_structure, path_structures)
+    destroy_process_group()
+
+def generate_structures(rank, vae, segmenter, base_structure, path_structures):
+    latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
+    for batch_num, z in enumerate(latent_variables_loader): 
+        z = z.to(rank)
+        predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, rank)
+        save_structures(predicted_structures, base_structure, batch_num, path_structures, predicted_structures.shape[0])
+
 
 
 
@@ -288,8 +309,8 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
     if not os.path.exists(output_path):
             os.makedirs(output_path)
 
+    world_size = torch.cuda.device_count()
     if z is None:
-        world_size = torch.cuda.device_count()
         mp.spawn(start_sample_latent, args=(world_size, yaml_setting_path, output_path, model_path, segmenter_path), nprocs=world_size)
         latent_path = os.path.join(output_path, "z.npy")
         z = np.load(latent_path)
