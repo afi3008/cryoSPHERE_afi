@@ -70,9 +70,9 @@ def gather(tens, tens_list=None, root=0, group=None):
         group = torch.distributed.group.WORLD
     if rank == root:
         assert(tensor_list is not None)
-        torch.distributed.gather(tensor, gather_list=tensor_list, group=group)
+        torch.distributed.gather(tens, gather_list=tens_list, group=group)
     else:
-        torch.distributed.gather(tensor, dst=root, group=group)
+        torch.distributed.gather(tens, dst=root, group=group)
 
 
 def concat_and_save(tens, path):
@@ -226,7 +226,7 @@ def save_structures_pca(predicted_structures, dim, output_path, base_structure):
         base_structure.coord = pred_struct.detach().cpu().numpy()
         save_structure(base_structure, os.path.join(output_path, f"pc{dim}/structure_z_{i}.pdb"))
 
-def save_structures(predicted_structures, base_structure, batch_num, output_path, batch_size):
+def save_structures(predicted_structures, base_structure, batch_num, output_path, batch_size, indexes):
     """
     Save structures in batch, with the correct numbering .
     :param predicted_structures: torch.tensor(N_batch, N_residues, 3) of predicted structures
@@ -237,7 +237,7 @@ def save_structures(predicted_structures, base_structure, batch_num, output_path
     for i, pred_struct in enumerate(predicted_structures):
         print("Saving structure", batch_num*batch_size + i)
         base_structure.coord = pred_struct.detach().cpu().numpy()
-        base_structure.to_pdb(os.path.join(output_path, f"structure_z_{batch_num*batch_size + i}.pdb"))
+        base_structure.to_pdb(os.path.join(output_path, f"structure_z_{indexes[i]}.pdb"))
 
 def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base_structure, thinning, segmenter, device):
     """
@@ -267,7 +267,7 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
-def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_structure, path_structures):
+def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_structure, path_structures, batch_size):
     """
     Wrapper function to decode the latent variable in parallel
     :param rank: integer, rank of the device
@@ -278,17 +278,15 @@ def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_struct
     """
     utils.ddp_setup(rank, world_size)
     latent_variable_dataset = LatentDataSet(z)
-    generate_structures(rank, vae, segmenter, base_structure, path_structures)
+    generate_structures(rank, vae, segmenter, base_structure, path_structures, latent_variable_dataset, batch_size)
     destroy_process_group()
 
-def generate_structures(rank, vae, segmenter, base_structure, path_structures):
-    latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
-    for batch_num, z in enumerate(latent_variables_loader): 
+def generate_structures(rank, vae, segmenter, base_structure, path_structures, latent_variable_dataset, batch_size):
+    latent_variables_loader = iter(DataLoader(latent_variable_dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False, sampler=DistributedSampler(latent_variable_dataset)))
+    for batch_num, (indexes, z) in enumerate(latent_variables_loader): 
         z = z.to(rank)
         predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, rank)
-        save_structures(predicted_structures, base_structure, batch_num, path_structures, predicted_structures.shape[0])
-
-
+        save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size, indexes)
 
 
 def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinning=1, dimensions=[0, 1, 2], num_points=10, generate_structures=False):
