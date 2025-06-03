@@ -75,8 +75,16 @@ def graph_traversal(z_pca, dim, num_points=10):
     traj_pca[:, dim] = np.linspace(start, stop, num_points)
     return traj_pca
 
+def start_sample_latent(rank, worldsize, vae, dataset, batch_size, output_path, num_workers=4):
+    utils.ddp_setup(rank, world_size)
+    (vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device,
+    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter)  = utils.parse_yaml(yaml_setting_path, rank, analyze=True)
+    vae.load_state_dict(torch.load(model_path))
+    vae.eval()
+    z = sample_latent_variables(rank, vae, dataset, batch_size, output_path)
+    destroy_process_group()
 
-def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_workers=4):
+def sample_latent_variables(gpu_id, worldsize, vae, dataset, batch_size, output_path, num_workers=4):
     """
     Sample all the latent variables of the dataset and save them in a .npy file
     :param vae: object of class VAE corresponding to the model we want to analyze.
@@ -86,16 +94,17 @@ def sample_latent_variables(vae, dataset, batch_size, output_path, device, num_w
     :param num_workers: integer, number of workers
     return 
     """
-    data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)))
+    vae = DDP(vae, device_ids=[gpu_id])
+    data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=True, sampler=DistributedSampler(dataset))))
     all_latent_variables = []
     for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
-        batch_images = batch_images.to(device)
-        batch_poses = batch_poses.to(device)
-        batch_poses_translation = batch_poses_translation.to(device)
-        indexes = indexes.to(device)
+        batch_images = batch_images.to(gpu_id)
+        batch_poses = batch_poses.to(gpu_id)
+        batch_poses_translation = batch_poses_translation.to(gpu_id)
+        indexes = indexes.to(gpu_id)
 
         batch_images = batch_images.flatten(start_dim=-2)
-        latent_variables, latent_mean, latent_std = vae.sample_latent(batch_images, indexes)
+        latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
         all_latent_variables.append(latent_variables.detach().cpu().numpy())
 
 
@@ -223,7 +232,9 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
     if not os.path.exists(output_path):
             os.makedirs(output_path)
 
-    if z is None:        
+    if z is None:
+        world_size = torch.cuda.device_count()
+        mp.spawn(sample_latent, args=(world_size, path), nprocs=world_size)
         z = sample_latent_variables(vae, dataset, batch_size, output_path, device)
 
     if not generate_structures:
