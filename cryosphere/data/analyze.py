@@ -10,6 +10,7 @@ import numpy as np
 import seaborn as sns
 from time import time
 from tqdm import tqdm
+from torch.utils.data import Dataset
 import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -266,6 +267,9 @@ def run_pca_analysis(vae, z, dimensions, num_points, output_path, gmm_repr, base
             save_structures_pca(predicted_structures, 0, output_path, base_structure)
 
 
+
+
+
 def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinning=1, dimensions=[0, 1, 2], num_points=10, generate_structures=False):
     """
     train a VAE network
@@ -299,6 +303,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
             os.makedirs(path_structures)
 
         z = torch.tensor(z, dtype=torch.float32)
+        latent_variable_dataset = LatentDataSet(z)
         latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
         for batch_num, z in enumerate(latent_variables_loader): 
             z = z.to(device)
