@@ -139,7 +139,7 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
     return 
     """
     vae = DDP(vae, device_ids=[gpu_id])
-    data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=True, sampler=DistributedSampler(dataset))))
+    data_loader = tqdm(iter(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, sampler=DistributedSampler(dataset, shuffle=False))))
     all_latent_variables = []
     for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
         batch_images = batch_images.to(gpu_id)
@@ -283,7 +283,7 @@ def generate_structures_wrapper(rank, world_size, z, vae, segmenter, base_struct
     destroy_process_group()
 
 def generate_structures(rank, vae, segmenter, base_structure, path_structures, latent_variable_dataset, batch_size):
-    latent_variables_loader = iter(DataLoader(latent_variable_dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False, sampler=DistributedSampler(latent_variable_dataset)))
+    latent_variables_loader = iter(DataLoader(latent_variable_dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False, sampler=DistributedSampler(latent_variable_dataset, shuffle=False)))
     for batch_num, (indexes, z) in enumerate(latent_variables_loader): 
         z = z.to(rank)
         predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, rank)
