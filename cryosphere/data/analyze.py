@@ -62,14 +62,14 @@ class LatentDataSet(Dataset):
 
 def gather(tens, tens_list=None, root=0, group=None):
     """
-        Sends tensor to root process, which store it in tensor_list.
+        Sends tensor to root process, which store it in tens_list.
     """
   
     rank = torch.distributed.get_rank()
     if group is None:
         group = torch.distributed.group.WORLD
     if rank == root:
-        assert(tensor_list is not None)
+        assert(tens_list is not None)
         torch.distributed.gather(tens, gather_list=tens_list, group=group)
     else:
         torch.distributed.gather(tens, dst=root, group=group)
@@ -323,11 +323,7 @@ def analyze(yaml_setting_path, model_path, segmenter_path, output_path, z, thinn
 
         z = torch.tensor(z, dtype=torch.float32)
         latent_variable_dataset = LatentDataSet(z)
-        latent_variables_loader = iter(DataLoader(z, shuffle=False, batch_size=batch_size))
-        for batch_num, z in enumerate(latent_variables_loader): 
-            z = z.to(device)
-            predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, device)
-            save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size)
+        mp.spawn(generate_structures_wrapper, args=(world_size, z, vae, segmenter, base_structure, path_structures, batch_size), nprocs=world_size)
 
 
 def analyze_run():
