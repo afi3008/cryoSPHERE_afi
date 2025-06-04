@@ -197,8 +197,8 @@ def predict_structures(vae, z_dim, gmm_repr, segmenter, device):
     :param device: torch device
     """
     z_dim = torch.tensor(z_dim, dtype=torch.float32, device=device)
-    segmentation = segmenter.module.sample_segments(z_dim.shape[0])
-    quaternions_per_domain, translations_per_domain = vae.module.decode(z_dim)
+    segmentation = segmenter.sample_segments(z_dim.shape[0])
+    quaternions_per_domain, translations_per_domain = vae.decode(z_dim)
     translation_per_residue = utils.compute_translations_per_residue(translations_per_domain, segmentation, gmm_repr.mus.shape[0],z_dim.shape[0], device)
     predicted_structures = utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, device)
     return predicted_structures
@@ -292,9 +292,8 @@ def generate_structures(rank, vae, segmenter, base_structure, path_structures, l
     segmenter = DDP(segmenter, device_ids=[rank])
     latent_variables_loader = iter(DataLoader(latent_variable_dataset, shuffle=False, batch_size=batch_size, num_workers=4, drop_last=False, sampler=DistributedSampler(latent_variable_dataset, shuffle=False)))
     for batch_num, (indexes, z) in enumerate(latent_variables_loader): 
-        print(f"Structures indexes on GPU {rank}", indexes)
         z = z.to(rank)
-        predicted_structures = predict_structures(vae, z, gmm_repr, segmenter, rank)
+        predicted_structures = predict_structures(vae.module, z, gmm_repr, segmenter.module, rank)
         save_structures(predicted_structures, base_structure, batch_num, path_structures, batch_size, indexes)
 
 
