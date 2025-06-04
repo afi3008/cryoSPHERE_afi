@@ -177,7 +177,7 @@ def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
     :param pca: scikit-learn PCA object.
     """
     os.makedirs(os.path.join(output_path, f"pc{dim}/"), exist_ok=True)
-    sns.kdeplot(x=z_pca[:, dim], y=z_pca[:, dim+1], fill=True, clip= (-5, 5))
+    sns.kdeplot(x=z_pca[:, dim], y=z_pca[:, dim+1], fill=True, clip= (-50, 50))
     print("TRJACTORIES", all_trajectories_pca[dim][:, :])
     plt.scatter(x=all_trajectories_pca[dim][:, dim], y=all_trajectories_pca[dim][:, dim+1], c="red")
     plt.title("PCA of the latent space")
