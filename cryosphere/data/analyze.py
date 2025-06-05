@@ -199,7 +199,7 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
     #    np.save(latent_path, all_latent_variables)
     latent_path = os.path.join(output_path, "z.npy")
     z = np.concatenate(all_latent_variables, axis=0)
-    np.save(f"z_{gpu_id}.npy")
+    np.save(f"z_{gpu_id}.npy", z)
 
 
 def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
