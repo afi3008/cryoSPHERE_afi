@@ -74,6 +74,20 @@ def gather(tens, tens_list=None, root=0, group=None):
     else:
         torch.distributed.gather(tens, dst=root, group=group)
 
+def all_gather(tens, tens_list=None, root=0, group=None):
+    """
+        Sends tensor to root process, which store it in tens_list.
+    """
+  
+    rank = torch.distributed.get_rank()
+    if group is None:
+        group = torch.distributed.group.WORLD
+    if rank == root:
+        assert(tens_list is not None)
+        torch.distributed.all_gather(tens_list, tens, group=group)
+    else:
+        torch.distributed.gather(tens, group=group)
+
 
 def concat_and_save(tens, path):
     """
@@ -156,13 +170,13 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
         batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
         if gpu_id == 0:
-            gather(latent_mean, batch_latent_mean_list)
-            gather(indexes, batch_indexes)
+            all_gather(latent_mean, batch_latent_mean_list)
+            all_gather(indexes, batch_indexes)
         else:
-            gather(latent_mean)
-            gather(indexes)
+            all_gather(latent_mean)
+            all_gather(indexes)
 
-        print(f"GPU {gpu_id} batch num {batch_num}")
+        print(f"GPU {gpu_id} batch num {batch_num} and batch size {batch_size}")
         print("Indexes:", indexes.shape)
         print("Latent variables", latent_variables.shape)
         print("LAtent mean device:", latent_mean.device)
