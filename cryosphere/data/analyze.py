@@ -167,35 +167,39 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         batch_images = batch_images.flatten(start_dim=-2)
         #batch_latent_mean_list = [torch.zeros_like(batch_images[:, :2], device=batch_images.device) for _ in range(world_size)]
         latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
-        batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
-        batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
-        if gpu_id == 0:
-            all_gather(latent_mean, batch_latent_mean_list)
-            all_gather(indexes, batch_indexes)
-        else:
-            all_gather(latent_mean)
-            all_gather(indexes)
+        all_latent_variables.append(latent_mean.detach().cpu().numpy())
+        #batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
+        #batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
+        #if gpu_id == 0:
+        #    all_gather(latent_mean, batch_latent_mean_list)
+        #    all_gather(indexes, batch_indexes)
+        #else:
+        #    all_gather(latent_mean)
+        #    all_gather(indexes)
 
-        print(f"GPU {gpu_id} batch num {batch_num} and batch size {batch_size}")
-        print("Input", batch_images)
-        print("Indexes:", indexes.shape)
-        print("Latent variables", latent_variables.shape)
-        print("LAtent mean device:", latent_mean.device)
-        if latent_variables.shape[0] != 128:
-            print("AAAAAAAA")
+        #print(f"GPU {gpu_id} batch num {batch_num} and batch size {batch_size}")
+        #print("Input", batch_images)
+        #print("Indexes:", indexes.shape)
+        #print("Latent variables", latent_variables.shape)
+        #print("LAtent mean device:", latent_mean.device)
+        #if latent_variables.shape[0] != 128:
+        #    print("AAAAAAAA")
 
-        if gpu_id == 0:
-            all_gpu_indexes = torch.concat(batch_indexes, dim=0)
-            all_gpu_latent_mean = torch.concat(batch_latent_mean_list, dim=0)
-            sorted_batch_indexes = torch.argsort(all_gpu_indexes, dim=0)
-            sorted_batch_latent_mean = all_gpu_latent_mean[sorted_batch_indexes]
-            all_latent_variables.append(sorted_batch_latent_mean.detach().cpu().numpy())
+        #if gpu_id == 0:
+        #    all_gpu_indexes = torch.concat(batch_indexes, dim=0)
+        #    all_gpu_latent_mean = torch.concat(batch_latent_mean_list, dim=0)
+        #    sorted_batch_indexes = torch.argsort(all_gpu_indexes, dim=0)
+        #    sorted_batch_latent_mean = all_gpu_latent_mean[sorted_batch_indexes]
+        #    all_latent_variables.append(sorted_batch_latent_mean.detach().cpu().numpy())
 
 
-    if gpu_id == 0:
-        all_latent_variables = np.concatenate(all_latent_variables, axis=0)
-        latent_path = os.path.join(output_path, "z.npy")
-        np.save(latent_path, all_latent_variables)
+    #if gpu_id == 0:
+    #    all_latent_variables = np.concatenate(all_latent_variables, axis=0)
+    #    latent_path = os.path.join(output_path, "z.npy")
+    #    np.save(latent_path, all_latent_variables)
+    latent_path = os.path.join(output_path, "z.npy")
+    z = np.concatenate(all_latent_variables, axis=0)
+    np.save(f"z_{gpu_id}.npy")
 
 
 def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
