@@ -138,6 +138,7 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
     :param num_workers: integer, number of workers
     return 
     """
+    vae.to(gpu_id)
     vae = DDP(vae, device_ids=[gpu_id])
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=True, sampler=DistributedSampler(dataset, shuffle=False, drop_last=True))
     data_loader.sampler.set_epoch(0)
