@@ -177,6 +177,7 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
             gather(indexes)
 
         print(f"GPU {gpu_id} batch num {batch_num} and batch size {batch_size}")
+        print("Input", batch_images)
         print("Indexes:", indexes.shape)
         print("Latent variables", latent_variables.shape)
         print("LAtent mean device:", latent_mean.device)
