@@ -153,6 +153,9 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         batch_indexes = [torch.zeros_like(indexes) for _ in range(world_size)]
         gather(latent_mean, batch_latent_mean_list)
         gather(indexes, batch_indexes)
+        print(f"GPU {gpu_id}")
+        print("Indexes:", indexes)
+        print("Latent variables", latent_variables)
         if gpu_id == 0:
             all_gpu_indexes = torch.concat(batch_indexes, dim=0)
             all_gpu_latent_mean = torch.concat(batch_latent_mean_list, dim=0)
