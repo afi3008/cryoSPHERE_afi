@@ -158,9 +158,9 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         if gpu_id == 0:
             gather(batch_images, batch_latent_mean_list)
             gather(indexes, batch_indexes)
-        #else:
-        #    gather(latent_mean)
-        #    gather(indexes)
+        else:
+            gather(latent_mean)
+            gather(indexes)
 
         #print(f"GPU {gpu_id} batch num {batch_num}")
         #print("Indexes:", indexes.shape)
