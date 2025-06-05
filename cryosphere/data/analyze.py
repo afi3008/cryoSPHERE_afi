@@ -139,8 +139,9 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
     return 
     """
     vae = DDP(vae, device_ids=[gpu_id])
-    data_loader = iter(DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=True, sampler=DistributedSampler(dataset, shuffle=False, drop_last=True)))
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=True, sampler=DistributedSampler(dataset, shuffle=False, drop_last=True))
     data_loader.sampler.set_epoch(0)
+    data_loader = iter(data_loader)
     all_latent_variables = []
     for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
         batch_images = batch_images.to(gpu_id)
