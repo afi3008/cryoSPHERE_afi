@@ -151,8 +151,13 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
         batch_latent_mean_list = [torch.zeros_like(latent_mean) for _ in range(world_size)]
         batch_indexes = [torch.zeros_like(indexes) for _ in range(world_size)]
-        gather(latent_mean, batch_latent_mean_list)
-        gather(indexes, batch_indexes)
+        if rank gpu_id == 0
+            gather(latent_mean, batch_latent_mean_list)
+            gather(indexes, batch_indexes)
+        else:
+            gather(latent_mean)
+            gather(indexes)
+
         print(f"GPU {gpu_id} batch num {batch_num}")
         print("Indexes:", indexes.shape)
         print("Latent variables", latent_variables.shape)
