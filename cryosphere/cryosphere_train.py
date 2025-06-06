@@ -46,11 +46,12 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
                             "kl_prior_segmentation_mean":[], "kl_prior_segmentation_std":[], "kl_prior_segmentation_proportions":[], "l2_pen":[], "continuity_loss":[], 
                             "clashing_loss":[]}
 
-        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers = experiment_settings["num_workers"], drop_last=True, sampler=DistributedSampler(dataset))
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers = experiment_settings["num_workers"], drop_last=True, sampler=DistributedSampler(dataset, drop_last=True))
         start_tot = time()
         data_loader.sampler.set_epoch(epoch) 
         data_loader = tqdm(iter(data_loader))
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
+            print(f"Batch num {batch_num} and process {gpu_id}", indexes)
             batch_images = batch_images.to(gpu_id)
             batch_poses = batch_poses.to(gpu_id)
             batch_poses_translation = batch_poses_translation.to(gpu_id)
