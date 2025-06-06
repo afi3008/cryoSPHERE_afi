@@ -154,7 +154,7 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
     """
     vae.to(gpu_id)
     vae = DDP(vae, device_ids=[gpu_id])
-    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=True, sampler=DistributedSampler(dataset, shuffle=False, drop_last=True))
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, sampler=DistributedSampler(dataset, shuffle=False, drop_last=False))
     data_loader.sampler.set_epoch(0)
     data_loader = tqdm(iter(data_loader))
     all_latent_variables = []
@@ -192,8 +192,6 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         all_indexes = np.concatenate(all_indexes, axis = 0)
         latent_path = os.path.join(output_path, "z.npy")
         np.save(latent_path, all_latent_variables)
-        indexes_path = os.path.join(output_path, "indexes.npy")
-        np.save(indexes_path, all_indexes)
 
 
 def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
