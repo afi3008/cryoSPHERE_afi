@@ -166,13 +166,9 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         indexes = indexes.to(gpu_id)
 
         batch_images = batch_images.flatten(start_dim=-2)
-        #batch_latent_mean_list = [torch.zeros_like(batch_images[:, :2], device=batch_images.device) for _ in range(world_size)]
         latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
         latent_mean = latent_mean.contiguous()
         indexes = indexes.contiguous()
-        #all_latent_variables.append(latent_mean.detach().cpu().numpy())
-        #batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
-        #batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
         if gpu_id == 0:
             batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device).contiguous() for _ in range(world_size)]
             batch_indexes = [torch.zeros_like(indexes, device=batch_images.device).contiguous() for _ in range(world_size)]
@@ -182,17 +178,8 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
             gather(latent_mean)
             gather(indexes)
 
-        print(f"GPU {gpu_id} batch num {batch_num} and batch size {batch_size} indexes:", indexes)
-        print("Input", batch_images)
-        print("Indexes:", indexes.shape)
-        print("Latent variables", latent_variables.shape)
-        print("LAtent mean device:", latent_mean.device)
-        if latent_variables.shape[0] != 128:
-            print("AAAAAAAA")
-
         if gpu_id == 0:
             all_gpu_indexes = torch.concat(batch_indexes, dim=0)
-            print("MAX", torch.max(all_gpu_indexes))
             all_gpu_latent_mean = torch.concat(batch_latent_mean_list, dim=0)
             sorted_batch_indexes = torch.argsort(all_gpu_indexes, dim=0)
             sorted_batch_latent_mean = all_gpu_latent_mean[sorted_batch_indexes]
@@ -207,9 +194,6 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         np.save(latent_path, all_latent_variables)
         indexes_path = os.path.join(output_path, "indexes.npy")
         np.save(indexes_path, all_indexes)
-    #latent_path = os.path.join(output_path, "z.npy")
-    #z = np.concatenate(all_latent_variables, axis=0)
-    #np.save(f"z_{gpu_id}.npy", z)
 
 
 def plot_pca(output_path, dim, all_trajectories_pca, z_pca, pca):
