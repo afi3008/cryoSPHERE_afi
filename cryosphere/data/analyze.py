@@ -169,8 +169,8 @@ def sample_latent_variables(gpu_id, world_size, vae, dataset, batch_size, output
         #batch_latent_mean_list = [torch.zeros_like(batch_images[:, :2], device=batch_images.device) for _ in range(world_size)]
         latent_variables, latent_mean, latent_std = vae.module.sample_latent(batch_images, indexes)
         #all_latent_variables.append(latent_mean.detach().cpu().numpy())
-        batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
-        batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
+        #batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
+        #batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
         if gpu_id == 0:
             batch_latent_mean_list = [torch.zeros_like(latent_mean, device=latent_mean.device) for _ in range(world_size)]
             batch_indexes = [torch.zeros_like(indexes, device=batch_images.device) for _ in range(world_size)]
