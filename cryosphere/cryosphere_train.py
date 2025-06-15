@@ -51,7 +51,6 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
         data_loader.sampler.set_epoch(epoch) 
         data_loader = tqdm(iter(data_loader))
         for batch_num, (indexes, batch_images, batch_poses, batch_poses_translation, _) in enumerate(data_loader):
-            print(f"Batch num {batch_num} and process {gpu_id}", indexes)
             batch_images = batch_images.to(gpu_id)
             batch_poses = batch_poses.to(gpu_id)
             batch_poses_translation = batch_poses_translation.to(gpu_id)
