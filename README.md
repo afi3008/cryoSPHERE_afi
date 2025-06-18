@@ -8,6 +8,12 @@ CryoSPHERE works with two yaml files: one `parameters.yaml` describing the hyper
 The file `parameters.yaml` describes how to fit a single segmentation for the entire protein.
 The file `parameters_two_segmentation.yaml` describes how you can segment chain A and chain C (for example) only, and how to create a custom starting segmentation and define a custom prior on the segmentation. Note that if these custom starting segmentation and prior are not defined, the values of the segmentation are taken so that it is uniform. See the class Segmentation in the file segmentation.py.
 
+Since cryoSPHERE version 0.5.8, multi-gpu runs have been enabled for both training and analyzing the results, see below. By default, cryoSPHERE will use all the available GPUs. If you want to use only a subset of them, you can specify them by typing:
+
+```
+CUDA_VISIBLE_DEVICES=gpu_id_1, gpu_id_2, ..., gpu_id_n
+``` 
+right before the cryoSPHERE command you want to use, where gpu_id_1, ... gpu_id_n must be replaced by the integers denoting the devices you want cryoSPHERE to see.
 ## Installation
 
 CryoSPHERE is available as a python package named `cryosphere`. Create a conda environment, install cryosphere with `pip` and then `pytorch3d`:
@@ -45,6 +51,7 @@ The second step is to run cryoSPHERE. To run it, you need  two yaml files: a `pa
 ```
 cryosphere_train --experiment_yaml /path/to/parameters.yaml
 ```
+
 This command creates a folder named `cryoSPHERE` which contains the PyTorch models `ckpt_{n_epoch}.pt` and the segmentations `seg_{n_epoch}.pt`, one at the end of each epoch. It also copies the `parameters.yaml` and `image.yaml` files in this directory and creates a `run.log` to log training data.
 
 You can customize the `parameters.yaml` file, especially the segmentation. You can choose between a global segmentation of the protein and a local one.
