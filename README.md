@@ -28,7 +28,13 @@ pip install cryosphere
 
 Weights and Biases (wandb) is an AI development platform enabling easy monitoring of the training of deep learning methods. The `cryosphere` package comes with the `wandb` package. You have two option:
 
-1/ Create a wandb account and set your API key, whether by exporting an environment variable or login in at the start of cryoSPHERE, as explained [here](https://docs.wandb.ai/quickstart/). If you login at the start of cryoSPHERE, wandb creates a login file containing your API key and you will not need to do it for the subsequent runs.
+1/ Create a wandb account and set your API key, whether by exporting an environment variable or login in at the start of cryoSPHERE, as explained [here](https://docs.wandb.ai/quickstart/). If you login at the start of cryoSPHERE, wandb creates a login file containing your API key and you will not need to do it for the subsequent runs. 
+If you choose to login in wandb instead of setting and environment variable, you can also do it before your first cryoSPHERE run, by opening the python interpreter inside your cryosphere conda environment, and type:
+```
+ìmport wandb
+wandb.login()
+```
+You will be prompted to enter your API key. 
 
 2/ If you do not want to use wandb and are happy with the run.log file created in the cryoSPHERE folder that cryoSPHERE creates at the beginning of the run, you just change the `wandb: True` to `wandb: False` in the yaml file containing the paramters of cryoSPHERE.
 
