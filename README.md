@@ -24,6 +24,14 @@ conda install pytorch3d -c pytorch3d -c conda-forge
 pip install cryosphere
 ```
 
+## A word about `wandb`
+
+Weights and Biases (wandb) is an AI development platform enabling easy monitoring of the training of deep learning methods. The `cryosphere` package comes with the `wandb` package. You have two option:
+
+1/ Create a wandb account and set your API key, whether by exporting an environment variable or login in at the start of cryoSPHERE, as explained [here](https://docs.wandb.ai/quickstart/). If you login at the start of cryoSPHERE, wandb creates a login file containing your API key and you will not need to do it for the subsequent runs.
+
+2/ If you do not want to use wandb and are happy with the run.log file created in the cryoSPHERE folder that cryoSPHERE creates at the beginning of the run, you just change the `wandb: True` to `wandb: False` in the yaml file containing the paramters of cryoSPHERE.
+
 ## Training
 ### Preliminary: consensus reconstruction.
 Before running cryoSPHERE on a dataset you need  to run a homogeneous reconstruction software such as RELION or cryoSparc. This should yield a star file containing the poses of each image, the CTF and information about the images as well as one or several mrcs file(s) containing the actual images. You should also obtain one or several mrc files corresponding to consensus reconstruction(s). For this tutorial, we assume your images are in a file called `particles.mrcs` and after a consensus reconstruction, you obain a star file named `particles.star` and a consensus reconstruction file called `consensus_map.mrc`. This naming is not mandatory, your files can have arbitrary names as long as the extension is correct. CryoSPHERE would also work with data preprocessed by cryoSparc. In that case you can directly use the `particles.cs` file.
