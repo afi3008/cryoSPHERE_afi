@@ -24,6 +24,10 @@ conda install pytorch3d -c pytorch3d -c conda-forge
 pip install cryosphere
 ```
 
+## A minimal reproducible example
+
+We have published a minimal reproducible example on zenodo with results for verifying that your installation works correctly. You can find it at this [zenodo link](https://zenodo.org/records/15794610).
+
 ## A word about `wandb`
 
 Weights and Biases (wandb) is an AI development platform enabling easy monitoring of the training of deep learning methods. The `cryosphere` package comes with the `wandb` package. You have two option:
