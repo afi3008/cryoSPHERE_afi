@@ -21,14 +21,14 @@ CryoSPHERE is available as a python package named `cryosphere`. Create a conda e
 conda create -n cryosphere python==3.9.20
 conda activate cryosphere
 ```
-Install PyTorch on your system, enabling GPU usage. You can find the instructions (here)[https://pytorch.org/get-started/locally/]
+Install PyTorch on your system, enabling GPU usage. You can find the instructions [here](https://pytorch.org/get-started/locally/)
 
 Once done, install PyTorch3d:
 ```
 export FORCE_CUDA=1
 pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 ```
-The `export` command makes sure PyTorch3d is installed with GPU usage enabled. If needed, you can find more detailed instructions for installing PyTorch3d (here)[https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md]
+The `export` command makes sure PyTorch3d is installed with GPU usage enabled. If needed, you can find more detailed instructions for installing PyTorch3d [here](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md)
 
 Finally, you can install cryoSPHERE
 ```
