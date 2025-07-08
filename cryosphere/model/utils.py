@@ -492,7 +492,7 @@ def rotate_residues_einops(atom_positions, quaternions, segmentation, device):
     batch_size = quaternions.shape[0]
     N_segments = segmentation.shape[-1]
     # NOTE: no need to normalize the quaternions, quaternion_to_axis does it already.
-    rotation_per_segments_axis_angle = unitquat_to_rotvec(quaternions[:, [1, 2, 3, 0]])
+    rotation_per_segments_axis_angle = unitquat_to_rotvec(quaternions[:, :, [1, 2, 3, 0]])
     #The below tensor is [N_batch, N_residues, N_segments, 3]
     segmentation_rotation_per_segments_axis_angle = segmentation[:, :, :, None] * rotation_per_segments_axis_angle[:, None, :, :]
     #The below tensor is [N_batch, N_residues, N_segments, 4] with the real part as the last element from now on !!!!!
