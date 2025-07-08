@@ -6,7 +6,8 @@ import numpy as np
 from time import time
 from torch.utils.data import Dataset
 import torchvision.transforms.functional as tvf
-from pytorch3d.transforms import euler_angles_to_matrix, axis_angle_to_matrix
+#from pytorch3d.transforms import euler_angles_to_matrix, axis_angle_to_matrix
+from roma import rotvec_to_rotmat, euler_to_rotmat
 
 
 
@@ -38,7 +39,8 @@ def starfile_reader(starfile_path, apix):
 
     euler_angles_degrees = particles_df[["rlnAngleRot", "rlnAngleTilt", "rlnAnglePsi"]].values
     euler_angles_radians = euler_angles_degrees*np.pi/180
-    poses_rotations = euler_angles_to_matrix(torch.tensor(euler_angles_radians, dtype=torch.float32), convention="ZYZ")
+    #poses_rotations = euler_angles_to_matrix(torch.tensor(euler_angles_radians, dtype=torch.float32), convention="ZYZ")
+    poses_rotations = euler_to_rotmat(convention = "ZYZ", angles=torch.tensor(euler_angles_radians, dtype=torch.float32))
     #Transposing because ReLion has a clockwise convention, while we use a counter-clockwise convention.
     poses_rotations = torch.transpose(poses_rotations, dim0=-2, dim1=-1)
 
@@ -75,7 +77,8 @@ def cs_file_reader(cs_file_path, apix, abinit, hetrefine):
     #parse rotations
     rot = np.array([x[RKEY] for x in data])
     rot = torch.tensor(rot)
-    rot_matrix = axis_angle_to_matrix(rot)
+    #rot_matrix = axis_angle_to_matrix(rot)
+    rot_matrix = rotvec_to_rotmat(rot)
     rot_matrix = torch.transpose(rot_matrix, dim0= -2, dim1=-1)
 
     #parse translations

@@ -22,14 +22,16 @@ from cryosphere.model.vae import VAE
 from cryosphere.model.mlp import MLP
 from cryosphere.model.ctf import CTF
 from biotite.structure.io.pdb import PDBFile
-from pytorch3d.transforms import Transform3d
+#from pytorch3d.transforms import Transform3d
 from cryosphere.model.polymer import Polymer
 from torch.distributed import init_process_group
 from cryosphere.model.dataset import ImageDataSet
 from cryosphere.model.gmm import Gaussian, EMAN2Grid
 from cryosphere.model.segmentation import Segmentation
-from pytorch3d.transforms import quaternion_to_axis_angle, axis_angle_to_matrix, axis_angle_to_quaternion, quaternion_apply
+#from pytorch3d.transforms import quaternion_to_axis_angle, axis_angle_to_matrix, axis_angle_to_quaternion, quaternion_apply
 from cryosphere.model.loss import compute_loss, find_range_cutoff_pairs, remove_duplicate_pairs, find_continuous_pairs, calc_dist_by_pair_indices
+import roma
+from roma import unitquat_to_rotvec, rotvec_to_rotmat, rotvec_to_unitquat
 
 
 
@@ -465,10 +467,10 @@ def compute_rotations_per_residue_einops(quaternions, segmentation, device):
     N_residues = segmentation.shape[1]
     batch_size = quaternions.shape[0]
     N_segments = segmentation.shape[-1]
-    # NOTE: no need to normalize the quaternions, quaternion_to_axis does it already.
-    rotation_per_domains_axis_angle = quaternion_to_axis_angle(quaternions)
+    # NOTE: no need to normalize the quaternions, as we fix the real part to 1, when taking sin theta/2 / cos theta/2 = norm/real_part = norm and norm can be more than one, as sin/cos can be arbitrarily high.
+    rotation_per_domains_axis_angle = unitquat_to_rotvec(quaternions[:, [1, 2, 3, 0]])
     segmentation_rotation_per_domains_axis_angle = segmentation[:, :, :, None] * rotation_per_domains_axis_angle[:, None, :, :]
-    segmentation_rotation_matrix_per_domain_per_residue = axis_angle_to_matrix(segmentation_rotation_per_domains_axis_angle)
+    segmentation_rotation_matrix_per_domain_per_residue = rotvec_to_rotmat(segmentation_rotation_per_domains_axis_angle)
     ## Flipping to keep in line with the previous implementation
     segmentation_rotation_matrix_per_domain_per_residue = torch.einsum("brdle->dbrle", segmentation_rotation_matrix_per_domain_per_residue).flip(0)
     dimensions = ",".join([f"b r a{i} a{i+1}" for i in range(N_segments)])
@@ -490,14 +492,19 @@ def rotate_residues_einops(atom_positions, quaternions, segmentation, device):
     batch_size = quaternions.shape[0]
     N_segments = segmentation.shape[-1]
     # NOTE: no need to normalize the quaternions, quaternion_to_axis does it already.
-    rotation_per_segments_axis_angle = quaternion_to_axis_angle(quaternions)
+    rotation_per_segments_axis_angle = unitquat_to_rotvec(quaternions[:, [1, 2, 3, 0]])
     #The below tensor is [N_batch, N_residues, N_segments, 3]
     segmentation_rotation_per_segments_axis_angle = segmentation[:, :, :, None] * rotation_per_segments_axis_angle[:, None, :, :]
-    segmentation_rotation_per_segments_quaternions = axis_angle_to_quaternion(segmentation_rotation_per_segments_axis_angle)
+    #The below tensor is [N_batch, N_residues, N_segments, 4] with the real part as the last element from now on !!!!!
+    segmentation_rotation_per_segments_quaternions = rotvec_to_unitquat(segmentation_rotation_per_segments_axis_angle)
     #T = Transform3d(dtype=torch.float32, device = device)
-    atom_positions = quaternion_apply(segmentation_rotation_per_segments_quaternions[:, :, 0, :], atom_positions)
+    transform = roma.RotationUnitQuat(segmentation_rotation_per_segments_quaternions[:, :, 0, :])
+    atom_positions = transform.apply(atom_positions[None, :, :])
+    #atom_positions = quaternion_apply(segmentation_rotation_per_segments_quaternions[:, :, 0, :], atom_positions)
     for segm in range(1, N_segments):
-        atom_positions = quaternion_apply(segmentation_rotation_per_segments_quaternions[:, :, segm, :], atom_positions)
+        transform = roma.RotationUnitQuat(segmentation_rotation_per_segments_quaternions[:, :, segm, :])
+        atom_positions = transform.apply(atom_positions)
+        #atom_positions = quaternion_apply(segmentation_rotation_per_segments_quaternions[:, :, segm, :], atom_positions)
 
     return atom_positions
 
