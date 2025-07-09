@@ -16,7 +16,7 @@ CUDA_VISIBLE_DEVICES=gpu_id_1, gpu_id_2, ..., gpu_id_n
 right before the cryoSPHERE command you want to use, where gpu_id_1, ... gpu_id_n must be replaced by the integers denoting the devices you want cryoSPHERE to see.
 ## Installation
 
-CryoSPHERE is available as a python package named `cryosphere`. Create a conda environment, install cryosphere with `pip` and then `pytorch3d`:
+CryoSPHERE is available as a python package named `cryosphere`. Create a conda environment and activate it::
 ```
 conda create -n cryosphere python==3.9.20
 conda activate cryosphere
