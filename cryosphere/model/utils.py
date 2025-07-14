@@ -186,7 +186,7 @@ def parse_yaml(path, gpu_id, analyze=False):
     image_file = os.path.join(folder_path, experiment_settings["image_yaml"])
     path_results = os.path.join(folder_path, "cryoSPHERE")
     if not os.path.exists(path_results):
-        os.makedirs(path_results)
+        os.makedirs(path_results, exist_ok=True)
 
     #Getting name of the parameters yaml file
     parameter_file = os.path.basename(path)
