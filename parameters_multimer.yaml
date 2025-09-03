@@ -2,7 +2,10 @@ name: "cryoSPHERE_run" #Name of the experiment. Especially useful for using weig
 wandb: True #Whether to log the training metrics into weight and biases. Note that it is not mandatory to use wand.
 wandb_project: "VAECryoEM" #Name of the weight and biases project into which we log the training metrics.
 folder_path: "path/to/folder" #path to the folder containing the star file, mrcs files and the base_structure.pdb
-base_structure_path: "base_structure.pdb" #Name of the pdb file of the base structure.
+base_structure_path: 
+	- "base_structure1.pdb" #Name of the first pdb file of the base structure.
+	- "base_structure2.pdb" #Name of the second pdb file of the base structure.
+	- "base_structure3.pdb" #Name of the third pdb file of the base structure.
 image_yaml: "images.yaml" #Name of the yaml file containing the parameters realted to the images.
 particles_path: "/path/to/particles" # path to the folder containing the mrcs files. Note that this will be appended to the paths in the star file.
 cs_star_file:
@@ -10,13 +13,27 @@ cs_star_file:
 	abinit: True #Whether or not the dataset has been obtained through ab-initio reconstruction. Only needed when reading data preprocessed by cryoSparc. If not specified, it is set as False. You may want to change this value.
 	hetrefine: True #Whether or not the dataset has been obtained through heterogeneous refinement. Only needed when reading data preprocessed by cryoSparc. If not specified, it is set to False. You may want to change this value.
 segmentation_config: #Definition of the segmentation
-	part1: #There is only one segmentation: the entire protein.
+	base_structure1: #There is only one segmentation: the entire protein.
 		all_protein: True #If all_protein is set to True, there is only one segmentation: the entire protein. If not present or False, the segmentation is local and the chain and start and end residue need to be specified.
 		N_segm: 20 #Number of segments.
-    segmentation_start:
-      type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
-    segmentation_prior:
-      type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
+    	segmentation_start:
+    		type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
+    	segmentation_prior:
+    		type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
+	base_structure2: #There is only one segmentation: the entire protein.
+		all_protein: True #If all_protein is set to True, there is only one segmentation: the entire protein. If not present or False, the segmentation is local and the chain and start and end residue need to be specified.
+		N_segm: 20 #Number of segments.
+    	segmentation_start:
+    		type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
+    	segmentation_prior:
+    		type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
+	base_structure3: #There is only one segmentation: the entire protein.
+		all_protein: True #If all_protein is set to True, there is only one segmentation: the entire protein. If not present or False, the segmentation is local and the chain and start and end residue need to be specified.
+		N_segm: 20 #Number of segments.
+    	segmentation_start:
+    		type: "uniform" #Starting values of the segmentation: "uniform" means that the means are evenly spanning the range [0, N_residues], the std is set to N_residues/N_segments and proportions are set to one, on average. See source code, model/vae.py to see how it is initialized. Default work well.
+		segmentation_prior:
+    		type: "uniform" #Prior to set on the segmentation. "uniform" means the same as above
 lp_bandwidth:   #Bandwith at which we low pass filter the images: all frequencies > 1/lp_bandwidth are set to 0. 
 loss_mask_radius: 1 #Radius of the circular mask used to compute the correlation loss, in percentage of half of the side length: 1 mean the circular mask streches to the edges of the image. Remove if not used. 
 input_mask_radius: 1 #Radius of the circular mask used on the images before feeding them to the encoder. Defined the same as loss_mask_radius. Remove if not used.
