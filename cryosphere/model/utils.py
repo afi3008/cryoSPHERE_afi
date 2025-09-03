@@ -239,22 +239,66 @@ def parse_yaml(path, gpu_id, analyze=False):
 
 
     grid = EMAN2Grid(Npix_downsize, apix_downsize, device=device)
-    base_structure_path = os.path.join(folder_path, experiment_settings["base_structure_path"])
-    base_structure = Polymer.from_pdb(base_structure_path)
-    amplitudes = torch.tensor(base_structure.num_electron, dtype=torch.float32, device=device)[:, None]
-    gmm_repr = Gaussian(torch.tensor(base_structure.coord, dtype=torch.float32, device=device), 
+
+    base_structures = []
+    residues_indexes = {}
+    residues_chains = {}
+    N_residues_pdb = {}
+    gmm_reprs = {}
+   
+    base_structure_paths = experiment_settings["base_structure_path"]
+    if isinstrance(base_structure_paths, str):
+        base_structure_paths = [base_structure_paths]
+    for i, path in enumerate(base_structure_paths):
+        abs_path = os.path.join(folder_path, path)
+        base_structure = Polymer.from_pdb(abs_path)
+        pdb_name = os.path.splitext(os.path.basename(path))[0]
+        if pdb_name not in experiment_settings["segmentation_config"]:
+            raise ValueError(f"No segmentation_config found for {pdb_name}")
+           
+        #name = list(experiment_settings["segmentation_config"].keys())[i]
+        base_structures.append(base_structure)
+        residues_indexes[pdb_name] = np.arange(len(base_structure.chain_id))
+        residues_chains[pdb_name] = base_structure.chain_id  
+        N_residues[pdb_name] = len(residues_indexes[pdb_name])
+    #base_structure = Polymer.from_pdb(base_structure_path)
+      
+        amplitudes = torch.tensor(base_structure.num_electron, dtype=torch.float32, device=device)[:, None]
+        gmm_reprs[pdb_name] = Gaussian(torch.tensor(base_structure.coord, dtype=torch.float32, device=device), 
                 torch.ones((base_structure.coord.shape[0], 1), dtype=torch.float32, device=device)*image_settings["sigma_gmm"], 
                 amplitudes)
-    residues_chain = base_structure.chain_id
-    residues_indexes = np.array([i for i in range(len(residues_chain))])
-    N_residues = len(residues_indexes)
+    #residues_chain = base_structure.chain_id
+    #residues_indexes = np.array([i for i in range(len(residues_chain))])
+    #N_residues = len(residues_indexes)
 
-    segmenter = Segmentation(experiment_settings["segmentation_config"], residues_indexes, residues_chain, tau_segmentation=experiment_settings["tau_segmentation"], device=device)
-    segmenter.to(device)
-    experiment_settings["segmentation_prior"] = segmenter.segmentation_prior
-    if experiment_settings["resume_training"]["segmentation"]:
-        segmenter.load_state_dict(torch.load(experiment_settings["resume_training"]["segmentation"]))
+        connect_pairs = find_continuous_pairs(base_structure.chain_id, base_structure.res_id, base_structure.atom_name)
+        dists = calc_dist_by_pair_indices(base_structure.coord, connect_pairs)
+        dists = torch.tensor(dists, device=device, dtype=torch.float32)
+        assert "full_clashing_loss" in experiment_settings["loss"]["clashing_loss"], "Please indicate whether you want to use the full clashing loss or its light version."
+        if experiment_settings["loss"]["clashing_loss"]["full_clashing_loss"]:
+            clash_pairs = None
+        else:
+            clash_pairs = find_range_cutoff_pairs(base_structure.coord, experiment_settings["loss"]["clashing_loss"]["min_clashing_cutoff_pairs"],experiment_settings["loss"]["clashing_loss"]["max_clashing_cutoff_pairs"])
+            clash_pairs = remove_duplicate_pairs(clash_pairs, connect_pairs)
+            clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
+   
+        connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
+        structural_loss_parameters = {"connect_pairs":connect_pairs, 
+                           "clash_pairs":clash_pairs, 
+                           "connect_distances":dists}
+
+    segmenters = {}
+    for pdb_name in base_structures.keys():
+        config = experiment_settings["segmentation_config"][pdb_name]
+        segmenter = Segmentation(config, residues_indexes[pdb_name], residues_chain[pdb_name], tau_segmentation=experiment_settings["tau_segmentation"], device=device)
         segmenter.to(device)
+        segmenters[pdb_name] = segmenter
+        if "segmentation_prior" not in experiment_settings:
+            experiment_settings["segmentation_prior"] = {}
+        experiment_settings["segmentation_prior"][pdb_name] = segmenter.segmentation_prior
+        if experiment_settings["resume_training"]["segmentation"]:
+            segmenter.load_state_dict(torch.load(experiment_settings["resume_training"]["segmentation"]))
+            segmenter.to(device)
   
 
     if experiment_settings["optimizer"]["name"] == "adam":
@@ -295,21 +339,21 @@ def parse_yaml(path, gpu_id, analyze=False):
     mask = Mask(Npix_downsize, experiment_settings.get("loss_mask_radius"), device)
 
 
-    connect_pairs = find_continuous_pairs(base_structure.chain_id, base_structure.res_id, base_structure.atom_name)
-    dists = calc_dist_by_pair_indices(base_structure.coord, connect_pairs)
-    dists = torch.tensor(dists, device=device, dtype=torch.float32)
-    assert "full_clashing_loss" in experiment_settings["loss"]["clashing_loss"], "Please indicate whether you want to use the full clashing loss or its light version."
-    if experiment_settings["loss"]["clashing_loss"]["full_clashing_loss"]:
-        clash_pairs = None
-    else:
-        clash_pairs = find_range_cutoff_pairs(base_structure.coord, experiment_settings["loss"]["clashing_loss"]["min_clashing_cutoff_pairs"],experiment_settings["loss"]["clashing_loss"]["max_clashing_cutoff_pairs"])
-        clash_pairs = remove_duplicate_pairs(clash_pairs, connect_pairs)
-        clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
+    #connect_pairs = find_continuous_pairs(base_structure.chain_id, base_structure.res_id, base_structure.atom_name)
+    #dists = calc_dist_by_pair_indices(base_structure.coord, connect_pairs)
+    #dists = torch.tensor(dists, device=device, dtype=torch.float32)
+    #assert "full_clashing_loss" in experiment_settings["loss"]["clashing_loss"], "Please indicate whether you want to use the full clashing loss or its light version."
+    #if experiment_settings["loss"]["clashing_loss"]["full_clashing_loss"]:
+    #    clash_pairs = None
+    #else:
+    #    clash_pairs = find_range_cutoff_pairs(base_structure.coord, experiment_settings["loss"]["clashing_loss"]["min_clashing_cutoff_pairs"],experiment_settings["loss"]["clashing_loss"]["max_clashing_cutoff_pairs"])
+    #    clash_pairs = remove_duplicate_pairs(clash_pairs, connect_pairs)
+    #    clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
 
-    connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
-    structural_loss_parameters = {"connect_pairs":connect_pairs, 
-                       "clash_pairs":clash_pairs, 
-                       "connect_distances":dists}
+    #connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
+    #structural_loss_parameters = {"connect_pairs":connect_pairs, 
+    #                   "clash_pairs":clash_pairs, 
+    #                   "connect_distances":dists}
 
 
     logging.info(f"Running cryoSPHERE on folder: {folder_path}")
@@ -322,7 +366,9 @@ def parse_yaml(path, gpu_id, analyze=False):
     logging.info(f"Running the amortized version of cryoSPHERE: {amortized}. Training for {N_epochs} epochs.")
     logging.info(f"Image size: {Npix}. Pixel size: {apix}. Running cryoSPHERE on downsampled images of size: {Npix_downsize} with pixel size {apix_downsize}.")
     logging.info(f"""Low pass filtering bandwidth: {experiment_settings.get("lp_bandwidth")}. Input images mask radius: {experiment_settings.get('input_mask_radius')}. Correlation loss radius: {experiment_settings.get("loss_mask_radius")}.""")
-    logging.info(f"Base structure: {experiment_settings['base_structure_path']} with {N_residues} residues.")
+    for name, bs in zip(experiment_settings["segmentation_config"].keys(), base_structures):
+        logging.info(f"Base structure {name}: {len(bs.chain_id)} residues from {experiment_settings['base_structure_path']}")
+    #logging.info(f"Base structure: {experiment_settings['base_structure_path']} with {N_residues} residues.")
     logging.info(f"Latent dimension: {experiment_settings['latent_dimension']}")
     if amortized:
         logging.info(f"Encoder hidden layers: {experiment_settings['encoder']['hidden_dimensions']}")
@@ -339,7 +385,7 @@ def parse_yaml(path, gpu_id, analyze=False):
 
 
     return vae, image_translator, ctf_experiment, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, \
-    scheduler, base_structure, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenter
+    scheduler, base_structures, lp_mask2d, mask, amortized, path_results, structural_loss_parameters, segmenters
 
 
 class SpatialGridTranslate(torch.nn.Module):
