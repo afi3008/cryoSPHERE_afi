@@ -573,11 +573,18 @@ def compute_translations_per_residue(translation_vectors, segmentations, N_resid
     :param device: torch device on which we perform the computations.
     :return: translation per residue torch.tensor(batch_size, N_residues, 3)
     """
-    translation_per_residue = torch.zeros((batch_size, N_residues, 3), dtype=torch.float32, device=device)
-    for part, segm in segmentations.items():
-        translation_per_residue[:, segm["mask"] == 1] += torch.einsum("bij, bjk -> bik", segm["segmentation"], translation_vectors[part])
-
+    translation_per_residue = {}
+    for pdb_name in translation_vectors.keys():
+        translation_per_residue[pdb_name] = torch.zeros((batch_size, N_residues[pdb_name], 3), dtype=torch.float32, device=device)
+        for part, segm in segmentations[pdb_name].items():
+            mask = torch.tensor(segm["mask"], dtype=torch.bool, device=device)
+            translation_per_residue[pdb_name][:, mask] += torch.einsum("bij, bjk -> bik", segm["segmentation"], translation_vectors[pdb_name][part])
     return translation_per_residue
+  
+    #translation_per_residue = torch.zeros((batch_size, N_residues, 3), dtype=torch.float32, device=device)
+    #for part, segm in segmentations.items():
+    #    translation_per_residue[:, segm["mask"] == 1] += torch.einsum("bij, bjk -> bik", segm["segmentation"], translation_vectors[part])
+
 
 def deform_structure(atom_positions, translation_per_residue, quaternions, segmentations, device):
     """
