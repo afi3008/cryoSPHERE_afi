@@ -283,38 +283,46 @@ def parse_yaml(path, gpu_id, analyze=False):
             clash_pairs = torch.tensor(clash_pairs, device=device, dtype=torch.long)
    
         connect_pairs = torch.tensor(connect_pairs, device=device, dtype=torch.long)
-        structural_loss_parameters = {"connect_pairs":connect_pairs, 
+        structural_loss_parameters = {}
+        structural_loss_parameters[pdb_name] = {"connect_pairs":connect_pairs, 
                            "clash_pairs":clash_pairs, 
                            "connect_distances":dists}
 
     segmenters = {}
     for pdb_name in base_structures.keys():
         config = experiment_settings["segmentation_config"][pdb_name]
-        segmenter = Segmentation(config, residues_indexes[pdb_name], residues_chain[pdb_name], tau_segmentation=experiment_settings["tau_segmentation"], device=device)
+        segmenter = Segmentation(config, residues_indexes[pdb_name], residues_chains[pdb_name], tau_segmentation=experiment_settings["tau_segmentation"], device=device)
         segmenter.to(device)
         segmenters[pdb_name] = segmenter
         if "segmentation_prior" not in experiment_settings:
             experiment_settings["segmentation_prior"] = {}
         experiment_settings["segmentation_prior"][pdb_name] = segmenter.segmentation_prior
         if experiment_settings["resume_training"]["segmentation"]:
-            segmenter.load_state_dict(torch.load(experiment_settings["resume_training"]["segmentation"]))
+            checkpoint = torch.load(experiment_settings["resume_training"]["segmentation"])
+            if isinstance(checkpoint, dict) and pdb_name in checkpoint:  # per-PDB checkpoint
+                segmenter.load_state_dict(checkpoint[pdb_name])
+            else:  # single checkpoint reused for all
+                segmenter.load_state_dict(checkpoint)
             segmenter.to(device)
+            #segmenter.load_state_dict(torch.load(experiment_settings["resume_training"]["segmentation"]))
+            #segmenter.to(device)
   
 
     if experiment_settings["optimizer"]["name"] == "adam":
         if "learning_rate_segmentation" not in experiment_settings["optimizer"]:
             list_param = [{"params": vae.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]}]
-            list_param.append({"params": segmenter.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
-            optimizer = torch.optim.Adam(list_param)
+            for segmenter in segmenters.values():
+               list_param.append({"params": segmenter.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
         else:
-            list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
+            for segmenter in segmenters.values():
+               list_param = [{"params": param, "lr":experiment_settings["optimizer"]["learning_rate_segmentation"]} for name, param in
                           segmenter.named_parameters() if "segments" in name]
-            list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
-            list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
-            if not amortized:
-                list_param.append({"params": vae.latent_variables_mean, "lr":experiment_settings["optimizer"]["learning_rate"]})
+               list_param.append({"params": vae.encoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
+               list_param.append({"params": vae.decoder.parameters(), "lr":experiment_settings["optimizer"]["learning_rate"]})
+               if not amortized:
+                   list_param.append({"params": vae.latent_variables_mean, "lr":experiment_settings["optimizer"]["learning_rate"]})
 
-            optimizer = torch.optim.Adam(list_param)
+        optimizer = torch.optim.Adam(list_param)
     else:
         raise Exception("Optimizer must be Adam")
 
