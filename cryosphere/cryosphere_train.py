@@ -32,15 +32,16 @@ def train(rank, world_size, yaml_setting_path):
     """
     ddp_setup(rank, world_size)
     (vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, device, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter) = model.utils.parse_yaml(yaml_setting_path, rank)
+    base_structures, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenters) = model.utils.parse_yaml(yaml_setting_path, rank)
     start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter, rank)
+    base_structures, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenters, rank)
     destroy_process_group()
 
 def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, dataset, N_epochs, batch_size, experiment_settings, scheduler, 
-    base_structure, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenter, gpu_id):
+    base_structures, lp_mask2d, mask_images, amortized, path_results, structural_loss_parameters, segmenters, gpu_id):
     vae = DDP(vae, device_ids=[gpu_id])
-    segmenter = DDP(segmenter, device_ids=[gpu_id])
+    for pdb_name in segmenters:
+        segmenters[pdb_name] = DDP(segmenters[pdb_name], device_ids=[gpu_id])
     for epoch in range(N_epochs):
         tracking_metrics = {"wandb":experiment_settings["wandb"], "epoch": epoch, "path_results":path_results ,"correlation_loss":[], "kl_prior_latent":[], 
                             "kl_prior_segmentation_mean":[], "kl_prior_segmentation_std":[], "kl_prior_segmentation_proportions":[], "l2_pen":[], "continuity_loss":[], 
@@ -63,7 +64,10 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
             else:
                 latent_variables, latent_mean, latent_std = vae.module.sample_latent(None, indexes)
 
-            segmentation = segmenter.module.sample_segments(batch_images.shape[0])
+            segmentation = {}
+            for pdb_name, seg in segmenters.items():
+                segmentation[pdb_name] = seg.module.sample_segments(batch_images.shape[0])
+            #segmentation = segmenter.module.sample_segments(batch_images.shape[0])
             quaternions_per_domain, translations_per_domain = vae.module.decode(latent_variables)
             translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation, base_structure.coord.shape[0], batch_size, gpu_id)
             predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, gpu_id)
@@ -71,7 +75,7 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
             predicted_images  = renderer.project(posed_predicted_structures, gmm_repr.sigmas, gmm_repr.amplitudes, grid)
             batch_predicted_images = renderer.apply_ctf(predicted_images, ctf, indexes)/dataset.f_std
             loss = compute_loss(batch_predicted_images, lp_batch_translated_images, None, latent_mean, latent_std, vae.module, segmenter.module, experiment_settings, tracking_metrics, 
-                structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=gpu_id)
+            structural_loss_parameters= structural_loss_parameters, epoch=epoch, predicted_structures=predicted_structures, device=gpu_id)
 
             loss.backward()
             optimizer.step()
