@@ -243,7 +243,7 @@ def parse_yaml(path, gpu_id, analyze=False):
     base_structures = []
     residues_indexes = {}
     residues_chains = {}
-    N_residues_pdb = {}
+    N_residues = {}
     gmm_reprs = {}
    
     base_structure_paths = experiment_settings["base_structure_path"]
