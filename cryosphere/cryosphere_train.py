@@ -73,9 +73,9 @@ def start_training(vae, image_translator, ctf, grid, gmm_repr, optimizer, datase
             quaternions_per_domain, translations_per_domain = vae.module.decode(latent_variables)
             quaternions_per_pdb = {}
             translations_per_pdb = {}
-            for pdb_name, parts in pdb_to_parts_mapping.items():  # some dict mapping pdb_name -> list of parts
-                quaternions_per_pdb[pdb_name] = {part: quaternions_per_domain[part] for part in parts}
-                translations_per_pdb[pdb_name] = {part: translations_per_domain[part] for part in parts}
+            #for pdb_name, parts in pdb_to_parts_mapping.items():  # some dict mapping pdb_name -> list of parts
+            #    quaternions_per_pdb[pdb_name] = {part: quaternions_per_domain[part] for part in parts}
+            #    translations_per_pdb[pdb_name] = {part: translations_per_domain[part] for part in parts}
             N_residues = {pdb_name: len(residues_indexes[pdb_name]) for pdb_name in segmenters.keys()}
             translation_per_residue = model.utils.compute_translations_per_residue(translations_per_domain, segmentation, N_residues, batch_size, gpu_id)
             #predicted_structures = model.utils.deform_structure(gmm_repr.mus, translation_per_residue, quaternions_per_domain, segmentation, gpu_id)
